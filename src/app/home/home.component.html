@@ -1,1 +1,5 @@
-<p>home works!</p>
+<h3>Posts</h3>
+@for (post of posts; track post.title) {
+  <app-post [date]="post.date" [title]="post.title" [route]="post.route"></app-post>
+}
+
