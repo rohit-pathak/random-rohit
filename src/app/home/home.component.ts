@@ -12,7 +12,7 @@ import { PostComponent } from "./post/post.component";
 })
 export class HomeComponent {
   posts: Post[] = [
-    { date: new Date('2024-05-29'), title: 'Aid Data Visualization', route: '/aid-data'}
+    { date: new Date('2024-06-11'), title: 'Indian Elections 2024 Analysis', route: '/india-elections-2024'}
   ]
 }
 
