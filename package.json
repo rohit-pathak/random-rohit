@@ -31,6 +31,7 @@
     "@angular/cli": "^18.0.1",
     "@angular/compiler-cli": "^18.0.0",
     "@types/d3": "^7.4.3",
+    "@types/geojson": "^7946.0.14",
     "@types/jasmine": "~5.1.0",
     "angular-eslint": "18.0.0-alpha.16",
     "eslint": "^9.3.0",
