@@ -2,8 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from "@angular/common/http";
 import { FeatureCollection } from "geojson";
 import { map, Observable } from "rxjs";
-import { csvParse } from "d3";
-import { Constituency } from "../models/models";
+import { csvParse, dsvFormat } from "d3";
+import { Constituency, ConstituencyResult } from "../models/models";
 
 @Injectable()
 export class ElectionDataService {
@@ -30,6 +30,26 @@ export class ElectionDataService {
         }
       )
     );
+  }
+
+  public getConstituencyResults(): Observable<ConstituencyResult[]> {
+    return this.http.get('/data/constituency-results.csv', { responseType: "text" }).pipe(
+      map((resultsCsv) => {
+        const parser = dsvFormat(";")
+        return parser.parse<keyof ConstituencyResult>(resultsCsv).map(d => {
+          const result: ConstituencyResult = {
+            constituencyId: d.constituencyId,
+            candidateName: d.candidateName,
+            partyName: d.partyName,
+            evmVotes: +d.evmVotes,
+            postalVotes: +d.postalVotes,
+            totalVotes: +d.totalVotes,
+            percentageOfVotes: +d.percentageOfVotes
+          }
+          return result;
+        })
+      })
+    )
   }
 
 }

@@ -1,9 +1,8 @@
-import { AfterViewInit, Component } from '@angular/core';
+import { AfterViewInit, Component, effect, inject, Injector } from '@angular/core';
 import { geoMercator, geoPath, select, Selection } from "d3";
 import { FeatureCollection } from "geojson";
-import { combineLatest } from "rxjs";
-import { ElectionDataService } from "../services/election-data.service";
 import { Constituency } from "../models/models";
+import { ElectionDataStore } from "../election-data.store";
 
 @Component({
   selector: 'app-overall-result',
@@ -13,6 +12,8 @@ import { Constituency } from "../models/models";
   styleUrl: './overall-result.component.scss'
 })
 export class OverallResultComponent implements AfterViewInit {
+  private electionDataStore = inject(ElectionDataStore);
+  private injector = inject(Injector);
   private mapSvg!: Selection<SVGSVGElement, unknown, HTMLElement, unknown>;
   private constituenciesGroup!: Selection<SVGGElement, unknown, HTMLElement, unknown>;
   private width = 800;
@@ -22,23 +23,31 @@ export class OverallResultComponent implements AfterViewInit {
     .center([78.9629, 20.5937]) // Longitude and latitude of India's center
     .translate([this.width / 2, this.height / 2]);
 
-  constructor(private electionDataService: ElectionDataService) {
+  ngAfterViewInit(): void {
+    this.electionDataStore.loadAllData();
+    this.initializeSvg();
+    this.drawOnDataChange();
   }
 
-  ngAfterViewInit(): void {
+  private initializeSvg(): void {
     this.mapSvg = select('.overall-result-viz-container .map-container')
       .append('svg')
       .attr('width', this.width)
       .attr('height', this.height);
     this.constituenciesGroup = this.mapSvg.append('g').attr('class', 'constituencies');
-    combineLatest([
-      this.electionDataService.getMapGeoJSON(),
-      this.electionDataService.getConstituencies()
-    ])
-      .subscribe(([indiaGeoJson, constituencies]) => {
-      this.drawMap(indiaGeoJson);
+  }
+
+  private drawOnDataChange(): void {
+    effect(() => {
+      const mapGeoJson = this.electionDataStore.constituencies2024Map();
+      const constituencies = this.electionDataStore.constituencies();
+      if (!mapGeoJson || !constituencies) {
+        return;
+      }
+      this.drawMap(mapGeoJson);
       this.drawConstituencies(constituencies);
-    })
+      console.log(this.electionDataStore.constituencyResults());
+    }, {injector: this.injector});
   }
 
   private drawMap(geoJson: FeatureCollection): void {
