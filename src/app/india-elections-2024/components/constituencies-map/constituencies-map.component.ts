@@ -1,30 +1,29 @@
 import { AfterViewInit, Component, effect, inject, Injector } from '@angular/core';
+import { ElectionDataStore } from "../../election-data.store";
 import { geoMercator, geoPath, select, Selection } from "d3";
 import { FeatureCollection } from "geojson";
-import { Constituency } from "../models/models";
-import { ElectionDataStore } from "../election-data.store";
+import { Constituency } from "../../models/models";
 
 @Component({
-  selector: 'app-overall-result',
+  selector: 'app-constituencies-map',
   standalone: true,
   imports: [],
-  templateUrl: './overall-result.component.html',
-  styleUrl: './overall-result.component.scss'
+  templateUrl: './constituencies-map.component.html',
+  styleUrl: './constituencies-map.component.scss'
 })
-export class OverallResultComponent implements AfterViewInit {
+export class ConstituenciesMapComponent implements AfterViewInit {
   private electionDataStore = inject(ElectionDataStore);
   private injector = inject(Injector);
   private mapSvg!: Selection<SVGSVGElement, unknown, HTMLElement, unknown>;
   private constituenciesGroup!: Selection<SVGGElement, unknown, HTMLElement, unknown>;
-  private width = 800;
+  private width = 600;
   private height = 600;
   private projection = geoMercator()
     .scale(900) // Adjust the scale value to fit India within your SVG
-    .center([78.9629, 20.5937]) // Longitude and latitude of India's center
+    .center([82.9629, 20.5937]) // Longitude and latitude of India's center
     .translate([this.width / 2, this.height / 2]);
 
   ngAfterViewInit(): void {
-    this.electionDataStore.loadAllData();
     this.initializeSvg();
     this.drawOnDataChange();
   }
@@ -70,5 +69,4 @@ export class OverallResultComponent implements AfterViewInit {
       .attr('fill', 'orange')
       .attr('opacity', 0.5);
   }
-
 }
