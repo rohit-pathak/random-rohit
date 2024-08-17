@@ -16,12 +16,9 @@ export class ConstituenciesMapComponent implements AfterViewInit {
   private injector = inject(Injector);
   private mapSvg!: Selection<SVGSVGElement, unknown, HTMLElement, unknown>;
   private constituenciesGroup!: Selection<SVGGElement, unknown, HTMLElement, unknown>;
-  private width = 600;
-  private height = 600;
-  private projection = geoMercator()
-    .scale(900) // Adjust the scale value to fit India within your SVG
-    .center([82.9629, 20.5937]) // Longitude and latitude of India's center
-    .translate([this.width / 2, this.height / 2]);
+  private width = 400;
+  private height = 400;
+  private projection = geoMercator();
   private topParties = [
     "Bharatiya Janata Party",
     "Indian National Congress",
@@ -72,6 +69,7 @@ export class ConstituenciesMapComponent implements AfterViewInit {
   }
 
   private drawMap(geoJson: FeatureCollection): void {
+    this.projection.fitSize([this.width, this.height], geoJson);
     const pathGenerator = geoPath().projection(this.projection);
     this.constituenciesGroup.selectAll('path')
       .data<ConstituencyMapItem>(
@@ -85,7 +83,7 @@ export class ConstituenciesMapComponent implements AfterViewInit {
       .join('path')
       .attr('d', d => pathGenerator(d.feature))
       .attr('stroke', '#ccc')
-      .attr('fill', d => this.colorScheme(d.results?.[0]?.partyName ?? '#eee')) // TODO: color by winning party
+      .attr('fill', d => this.colorScheme(d.results?.[0]?.partyName ?? '#eee'))
       .on('click', (_, d) => console.log(d));
   }
 }
