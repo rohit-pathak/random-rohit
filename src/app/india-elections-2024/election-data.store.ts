@@ -53,6 +53,17 @@ export const ElectionDataStore = signalStore(
       })
     }
   }),
+  withComputed((state) => {
+    return {
+      totalSeatsByParty: computed(() => {
+        return Object.values(state.resultsByConstituency()).reduce((acc, curr) => {
+          const winningParty = curr[0]?.partyName ?? '';
+          acc[winningParty] = (acc[winningParty] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>);
+      }),
+    }
+  }),
   withMethods((store, electionDataService = inject(ElectionDataService)) => {
     return {
       loadAllData: rxMethod<void>(

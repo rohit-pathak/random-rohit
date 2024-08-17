@@ -2,6 +2,7 @@ import { Component, inject, OnInit } from '@angular/core';
 import { OverallResultComponent } from "./components/overall-result/overall-result.component";
 import { ElectionDataService } from "./services/election-data.service";
 import { ElectionDataStore } from "./election-data.store";
+import { ColorScaleService } from "./services/color-scale.service";
 
 @Component({
   selector: 'app-india-elections-2024',
@@ -9,7 +10,7 @@ import { ElectionDataStore } from "./election-data.store";
   imports: [
     OverallResultComponent
   ],
-  providers: [ElectionDataService, ElectionDataStore],
+  providers: [ElectionDataService, ElectionDataStore, ColorScaleService],
   templateUrl: './india-elections-2024.component.html',
   styleUrl: './india-elections-2024.component.scss'
 })
