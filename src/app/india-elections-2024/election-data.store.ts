@@ -1,8 +1,8 @@
-import { patchState, signalStore, withMethods, withState } from "@ngrx/signals";
+import { patchState, signalStore, withComputed, withMethods, withState } from "@ngrx/signals";
 import { FeatureCollection } from "geojson";
 import { Constituency, ConstituencyResult } from "./models/models";
 import { rxMethod } from "@ngrx/signals/rxjs-interop";
-import { inject } from "@angular/core";
+import { computed, inject } from "@angular/core";
 import { ElectionDataService } from "./services/election-data.service";
 import { switchMap, tap } from "rxjs/operators";
 import { forkJoin, pipe } from "rxjs";
@@ -26,6 +26,33 @@ const initialState: ElectionDataState = {
 
 export const ElectionDataStore = signalStore(
   withState(initialState),
+  withComputed((state) => {
+    return {
+      constituenciesById: computed(() => {
+        return state.constituencies().reduce((acc, curr) => {
+          acc[curr.id] = curr;
+          return acc;
+        }, {} as Record<string, Constituency>);
+      }),
+      resultsByConstituency: computed(() => { // returns results for each constituency sorted by totalVotes desc
+        const resultsMap = state.constituencyResults().reduce((acc, curr) => {
+          if (!(curr.constituencyId in acc)) {
+            acc[curr.constituencyId] = [];
+          }
+          acc[curr.constituencyId].push(curr);
+          return acc;
+        }, {} as Record<string, ConstituencyResult[]>);
+        Object.values(resultsMap).forEach(results => results.sort((a, b) => b.totalVotes - a.totalVotes));
+        return resultsMap;
+      }),
+      totalVotesByParty: computed(() => {
+        return state.constituencyResults().reduce((acc, curr) => {
+          acc[curr.partyName] = (acc[curr.partyName] || 0) + curr.totalVotes;
+          return acc;
+        }, {} as Record<string, number>);
+      })
+    }
+  }),
   withMethods((store, electionDataService = inject(ElectionDataService)) => {
     return {
       loadAllData: rxMethod<void>(
