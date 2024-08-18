@@ -1,6 +1,6 @@
-import { AfterViewInit, Component, effect, inject, Injector } from '@angular/core';
+import { AfterViewInit, Component, effect, ElementRef, inject, Injector, signal, viewChild } from '@angular/core';
 import { ElectionDataStore } from "../../election-data.store";
-import { geoMercator, geoPath, select, Selection } from "d3";
+import { BaseType, geoMercator, geoPath, select, Selection } from "d3";
 import { Feature, FeatureCollection } from "geojson";
 import { Constituency, ConstituencyResult } from "../../models/models";
 import { ColorScaleService } from "../../services/color-scale.service";
@@ -23,6 +23,9 @@ export class ConstituenciesMapComponent implements AfterViewInit {
   private projection = geoMercator();
   private colorScheme = this.colorService.partyColorScale();
   private islands = ['U06', 'U01'];
+  private tooltip = viewChild.required<ElementRef>('tooltip');
+
+  hoveredConstituency = signal<ConstituencyMapItem | null>(null);
 
   constructor() {
     effect(() => { // TODO: remove
@@ -58,6 +61,7 @@ export class ConstituenciesMapComponent implements AfterViewInit {
   private drawMap(geoJson: FeatureCollection): void {
     this.projection.fitSize([this.width, this.height], geoJson);
     const pathGenerator = geoPath().projection(this.projection);
+    const component = this; // save reference to pass in to event listeners
     this.constituenciesGroup.selectAll('path')
       .data<ConstituencyMapItem>(
         geoJson.features.map(feature => {
@@ -72,7 +76,38 @@ export class ConstituenciesMapComponent implements AfterViewInit {
       .attr('stroke', d => this.islands.includes(d.constituency?.stateOrUT) ? this.colorScheme(d.results?.[0]?.partyName) : '#eee')
       .attr('stroke-width', '0.04rem')
       .attr('fill', d => this.colorScheme(d.results?.[0]?.partyName))
-      .on('click', (_, d) => console.log(d));
+      .on('click', (_, d) => this.onConstituencyClick(d))
+      .on('mouseover', function(e, d) {
+        component.onConstituencyMouseover(e, d, select<BaseType, ConstituencyMapItem>(this));
+      })
+      .on('mousemove', (e) => this.onConstituencyMousemove(e))
+      .on('mouseout', function() {
+        component.onConstituencyMouseout(select<BaseType, ConstituencyMapItem>(this));
+      });
+  }
+
+  private onConstituencyClick(c: ConstituencyMapItem): void {
+    console.log(c);
+  }
+
+  private onConstituencyMouseover(e: MouseEvent, c: ConstituencyMapItem, element: Selection<BaseType, ConstituencyMapItem, null, undefined>): void {
+    element.style('stroke-width', '0.1rem');
+    this.hoveredConstituency.set(c);
+    select(this.tooltip().nativeElement)
+      .style('visibility', 'visible')
+  }
+
+  private onConstituencyMousemove(event: MouseEvent): void {
+    select(this.tooltip().nativeElement)
+      .style('left', `${event.pageX + 10}px`)
+      .style('top', `${event.pageY + 20}px`);
+  }
+
+  private onConstituencyMouseout(element: Selection<BaseType, ConstituencyMapItem, null, undefined>): void {
+    element.style('stroke-width', '0.04rem');
+    this.hoveredConstituency.set(null);
+    select(this.tooltip().nativeElement)
+      .style('visibility', 'hidden');
   }
 }
 

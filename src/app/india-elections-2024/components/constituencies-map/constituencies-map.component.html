@@ -1,1 +1,6 @@
 <div class="map-container"></div>
+<div #tooltip class="tooltip">
+  <div><strong>{{hoveredConstituency()?.constituency?.name}}</strong></div>
+  <div>{{hoveredConstituency()?.results?.[0]?.partyName}}</div>
+  <small>{{hoveredConstituency()?.results?.[0]?.candidateName}}</small>
+</div>
