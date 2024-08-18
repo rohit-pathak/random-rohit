@@ -1,6 +1,6 @@
 import { AfterViewInit, Component, effect, ElementRef, inject, Injector, signal, viewChild } from '@angular/core';
 import { ElectionDataStore } from "../../election-data.store";
-import { BaseType, geoMercator, geoPath, select, Selection } from "d3";
+import { BaseType, D3ZoomEvent, geoMercator, geoPath, select, Selection, zoom } from "d3";
 import { Feature, FeatureCollection } from "geojson";
 import { Constituency, ConstituencyResult } from "../../models/models";
 import { ColorScaleService } from "../../services/color-scale.service";
@@ -55,6 +55,7 @@ export class ConstituenciesMapComponent implements AfterViewInit {
         return;
       }
       this.drawMap(mapGeoJson);
+      this.setZoomBehavior();
     }, { injector: this.injector });
   }
 
@@ -74,7 +75,7 @@ export class ConstituenciesMapComponent implements AfterViewInit {
       .join('path')
       .attr('d', d => pathGenerator(d.feature))
       .attr('stroke', d => this.islands.includes(d.constituency?.stateOrUT) ? this.colorScheme(d.results?.[0]?.partyName) : '#eee')
-      .attr('stroke-width', '0.04rem')
+      .attr('stroke-width', '0.015rem')
       .attr('fill', d => this.colorScheme(d.results?.[0]?.partyName))
       .on('click', (_, d) => this.onConstituencyClick(d))
       .on('mouseover', function(e, d) {
@@ -91,7 +92,7 @@ export class ConstituenciesMapComponent implements AfterViewInit {
   }
 
   private onConstituencyMouseover(e: MouseEvent, c: ConstituencyMapItem, element: Selection<BaseType, ConstituencyMapItem, null, undefined>): void {
-    element.style('stroke-width', '0.1rem');
+    element.style('stroke-width', '0.04rem');
     this.hoveredConstituency.set(c);
     select(this.tooltip().nativeElement)
       .style('visibility', 'visible')
@@ -104,10 +105,18 @@ export class ConstituenciesMapComponent implements AfterViewInit {
   }
 
   private onConstituencyMouseout(element: Selection<BaseType, ConstituencyMapItem, null, undefined>): void {
-    element.style('stroke-width', '0.04rem');
+    element.style('stroke-width', '0.015rem');
     this.hoveredConstituency.set(null);
     select(this.tooltip().nativeElement)
       .style('visibility', 'hidden');
+  }
+
+  private setZoomBehavior(): void {
+    const zoomBehavior = zoom<SVGSVGElement, unknown>()
+      .scaleExtent([1, 10])
+      .translateExtent([[0, 0], [this.width, this.height]])
+      .on('zoom', (e: D3ZoomEvent<SVGSVGElement, unknown>) => this.constituenciesGroup.attr('transform', e.transform.toString()));
+    this.mapSvg.call(zoomBehavior);
   }
 }
 
