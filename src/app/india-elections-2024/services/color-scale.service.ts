@@ -18,6 +18,7 @@ export class ColorScaleService {
     "Nationalist Congress Party – Sharadchandra Pawar": "#fb8072",
     "Shiv Sena": "#ffffb3",
     "Lok Janshakti Party(Ram Vilas)": "#b3de69",
+    "Aam Aadmi Party": "#ff9da7",
   };
 
   public readonly others = "#d9d9d9";
