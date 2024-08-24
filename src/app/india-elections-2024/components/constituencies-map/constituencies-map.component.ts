@@ -28,10 +28,6 @@ export class ConstituenciesMapComponent implements AfterViewInit {
   hoveredConstituency = signal<ConstituencyMapItem | null>(null);
 
   constructor() {
-    effect(() => { // TODO: remove
-      const partiesSorted = Object.entries(this.electionDataStore.totalSeatsByParty()).sort((a, b) => b[1] - a[1]);
-      console.log(partiesSorted.map(p => p[0]).slice(0, 14));
-    });
   }
 
   ngAfterViewInit(): void {
@@ -74,12 +70,12 @@ export class ConstituenciesMapComponent implements AfterViewInit {
       )
       .join('path')
       .attr('d', d => pathGenerator(d.feature))
-      .attr('stroke', d => this.islands.includes(d.constituency?.stateOrUT) ? this.colorScheme(d.results?.[0]?.partyName) : '#eee')
+      .attr('stroke', d => this.strokeColor(d))
       .attr('stroke-width', '0.015rem')
       .attr('fill', d => this.colorScheme(d.results?.[0]?.partyName))
       .on('click', (_, d) => this.onConstituencyClick(d))
       .on('mouseover', function(e, d) {
-        component.onConstituencyMouseover(e, d, select<BaseType, ConstituencyMapItem>(this));
+        component.onConstituencyMouseover(d, select<BaseType, ConstituencyMapItem>(this));
       })
       .on('mousemove', (e) => this.onConstituencyMousemove(e))
       .on('mouseout', function() {
@@ -91,11 +87,13 @@ export class ConstituenciesMapComponent implements AfterViewInit {
     console.log(c);
   }
 
-  private onConstituencyMouseover(e: MouseEvent, c: ConstituencyMapItem, element: Selection<BaseType, ConstituencyMapItem, null, undefined>): void {
+  private onConstituencyMouseover(hoveredConstituency: ConstituencyMapItem, element: Selection<BaseType, ConstituencyMapItem, null, undefined>): void {
     element.style('stroke-width', '0.04rem');
-    this.hoveredConstituency.set(c);
+    this.hoveredConstituency.set(hoveredConstituency);
     select(this.tooltip().nativeElement)
-      .style('visibility', 'visible')
+      .style('visibility', 'visible');
+    this.constituenciesGroup.selectAll<SVGPathElement, ConstituencyMapItem>('path')
+      .style('opacity', d => d.constituency?.stateOrUT === hoveredConstituency.constituency?.stateOrUT ? 1 : 0.4);
   }
 
   private onConstituencyMousemove(event: MouseEvent): void {
@@ -109,6 +107,8 @@ export class ConstituenciesMapComponent implements AfterViewInit {
     this.hoveredConstituency.set(null);
     select(this.tooltip().nativeElement)
       .style('visibility', 'hidden');
+    this.constituenciesGroup.selectAll<SVGPathElement, ConstituencyMapItem>('path')
+      .style('opacity', null);
   }
 
   private setZoomBehavior(): void {
@@ -117,6 +117,10 @@ export class ConstituenciesMapComponent implements AfterViewInit {
       .translateExtent([[0, 0], [this.width, this.height]])
       .on('zoom', (e: D3ZoomEvent<SVGSVGElement, unknown>) => this.constituenciesGroup.attr('transform', e.transform.toString()));
     this.mapSvg.call(zoomBehavior);
+  }
+
+  private strokeColor(constituencyItem: ConstituencyMapItem): string {
+    return this.islands.includes(constituencyItem.constituency?.stateOrUT) ? this.colorScheme(constituencyItem.results?.[0]?.partyName) : '#eee';
   }
 }
 
