@@ -27,9 +27,6 @@ export class ConstituenciesMapComponent implements AfterViewInit {
 
   hoveredConstituency = signal<ConstituencyMapItem | null>(null);
 
-  constructor() {
-  }
-
   ngAfterViewInit(): void {
     this.initializeSvg();
     this.drawOnDataChange();
