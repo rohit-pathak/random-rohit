@@ -1,13 +1,16 @@
-import { Component, computed, effect, inject, input } from '@angular/core';
+import { Component, computed, inject, input } from '@angular/core';
 import { Constituency, ConstituencyResult } from "../../models/models";
 import { TitleCasePipe } from "@angular/common";
 import { ElectionDataStore } from "../../election-data.store";
+import { DonutChartComponent } from "../../../shared/components/donut-chart/donut-chart.component";
+import { ColorScaleService } from "../../services/color-scale.service";
 
 @Component({
   selector: 'app-constituency-detail',
   standalone: true,
   imports: [
-    TitleCasePipe
+    TitleCasePipe,
+    DonutChartComponent
   ],
   templateUrl: './constituency-detail.component.html',
   styleUrl: './constituency-detail.component.scss'
@@ -28,16 +31,26 @@ export class ConstituencyDetailComponent {
       results
     }
   });
-
+  totalVotes = computed(() => {
+    const detail = this.constituencyDetail()
+    if (!detail) {
+      return 0;
+    }
+    return detail.results.reduce((acc, curr) => acc + curr.totalVotes, 0);
+  });
+  pctDonutValueFn = computed<(d: ConstituencyResult) => number>(() => {
+    return (d: ConstituencyResult) => d.totalVotes / (this.totalVotes() || 1) // don't divide by zero;
+  });
+  pctDonutLabelFn = computed<(d: ConstituencyResult) => string>(() => {
+    return (d: ConstituencyResult) => `${d.partyName}: ${d.totalVotes / this.totalVotes()}`
+  });
+  pctDonutColorFn = computed<(d: ConstituencyResult) => string>(() => {
+    const partyColorScale = this.colorService.partyColorScale();
+    return (d: ConstituencyResult) => partyColorScale(d.partyName);
+  })
 
   private electionDataStore = inject(ElectionDataStore);
-
-  constructor() {
-    effect(() => {
-      console.log(this.electionDataStore.statesById());
-    });
-  }
-
+  private colorService = inject(ColorScaleService);
 
 }
 
