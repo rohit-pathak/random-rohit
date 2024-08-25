@@ -1,6 +1,7 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { ConstituenciesMapComponent } from "../constituencies-map/constituencies-map.component";
 import { ConstituencyDetailComponent } from "../constituency-detail/constituency-detail.component";
+import { Constituency } from "../../models/models";
 
 @Component({
   selector: 'app-overall-result',
@@ -10,5 +11,10 @@ import { ConstituencyDetailComponent } from "../constituency-detail/constituency
   styleUrl: './overall-result.component.scss'
 })
 export class OverallResultComponent {
+  selectedConstituency = signal<Constituency | null>(null);
+
+  onConstituencyClick(constituency: Constituency): void {
+    this.selectedConstituency.set(constituency);
+  }
 
 }

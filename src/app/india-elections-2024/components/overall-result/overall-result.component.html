@@ -1,4 +1,4 @@
 <div class="overall-result-viz-container">
-  <app-constituencies-map />
-  <app-constituency-detail />
+  <app-constituencies-map (constituencyClick)="onConstituencyClick($event)"/>
+  <app-constituency-detail [constituency]="selectedConstituency()"/>
 </div>

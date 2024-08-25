@@ -1,1 +1,8 @@
-<p>constituency-detail works!</p>
+@if (constituency()) {
+  <h6>{{ constituency()?.name | titlecase }}</h6>
+  <div><small>{{ constituency()?.stateOrUT }}</small></div>
+  <div>Vote pct donut</div>
+  <div>Vote count bar chart</div>
+} @else {
+  <p class="text-secondary">Click on a constituency in the map to see vote percentage and detailed vote distribution for candidates in that constituency.</p>
+}

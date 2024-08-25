@@ -1,4 +1,14 @@
-import { AfterViewInit, Component, effect, ElementRef, inject, Injector, signal, viewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  effect,
+  ElementRef,
+  inject,
+  Injector,
+  output,
+  signal,
+  viewChild
+} from '@angular/core';
 import { ElectionDataStore } from "../../election-data.store";
 import { BaseType, D3ZoomEvent, geoMercator, geoPath, select, Selection, zoom } from "d3";
 import { Feature, FeatureCollection } from "geojson";
@@ -13,6 +23,9 @@ import { ColorScaleService } from "../../services/color-scale.service";
   styleUrl: './constituencies-map.component.scss'
 })
 export class ConstituenciesMapComponent implements AfterViewInit {
+
+  constituencyClick = output<Constituency>();
+
   private electionDataStore = inject(ElectionDataStore);
   private colorService = inject(ColorScaleService);
   private injector = inject(Injector);
@@ -81,7 +94,7 @@ export class ConstituenciesMapComponent implements AfterViewInit {
   }
 
   private onConstituencyClick(c: ConstituencyMapItem): void {
-    console.log(c);
+    this.constituencyClick.emit(c.constituency);
   }
 
   private onConstituencyMouseover(hoveredConstituency: ConstituencyMapItem, element: Selection<BaseType, ConstituencyMapItem, null, undefined>): void {
