@@ -1,6 +1,6 @@
-@if (constituency()) {
-  <h6>{{ constituency()?.name | titlecase }}</h6>
-  <div><small>{{ constituency()?.stateOrUT }}</small></div>
+@if (constituencyDetail()) {
+  <div><small>{{ constituencyDetail()?.stateName }}</small></div>
+  <h6>{{ constituencyDetail()?.constituency?.name | titlecase }}</h6>
   <div>Vote pct donut</div>
   <div>Vote count bar chart</div>
 } @else {

@@ -34,6 +34,16 @@ export const ElectionDataStore = signalStore(
           return acc;
         }, {} as Record<string, Constituency>);
       }),
+      statesById: computed(() => {
+        const map = state.constituencies2024Map();
+        if (!map) {
+          return {};
+        }
+        return map.features.reduce((acc, curr) => {
+          acc[curr.properties?.['ST_CODE']] = curr.properties?.['STATE_NAME'] ?? '';
+          return acc;
+        }, {} as Record<string, string>);
+      }),
       resultsByConstituency: computed(() => { // returns results for each constituency sorted by totalVotes desc
         const resultsMap = state.constituencyResults().reduce((acc, curr) => {
           if (!(curr.constituencyId in acc)) {
