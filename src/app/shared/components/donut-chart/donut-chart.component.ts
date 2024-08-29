@@ -26,6 +26,7 @@ export class DonutChartComponent<T> implements AfterViewInit {
   colorFn = input.required<(d: T) => string>();
 
   sectorMouseover = output<T>();
+  sectorMouseout = output<void>();
 
   private svg!: Selection<SVGSVGElement, unknown, HTMLElement, unknown>;
   private arcGroup!: Selection<SVGGElement, unknown, HTMLElement, unknown>;
@@ -81,5 +82,6 @@ export class DonutChartComponent<T> implements AfterViewInit {
   private onSectorMouseout(): void {
     this.arcGroup.selectAll('path')
       .attr('opacity', 1);
+    this.sectorMouseout.emit();
   }
 }

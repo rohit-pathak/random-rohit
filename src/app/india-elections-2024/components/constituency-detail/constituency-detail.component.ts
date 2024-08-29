@@ -1,4 +1,4 @@
-import { Component, computed, inject, input } from '@angular/core';
+import { Component, computed, inject, input, signal } from '@angular/core';
 import { Constituency, ConstituencyResult } from "../../models/models";
 import { TitleCasePipe } from "@angular/common";
 import { ElectionDataStore } from "../../election-data.store";
@@ -47,10 +47,19 @@ export class ConstituencyDetailComponent {
   pctDonutColorFn = computed<(d: ConstituencyResult) => string>(() => {
     const partyColorScale = this.colorService.partyColorScale();
     return (d: ConstituencyResult) => partyColorScale(d.partyName);
-  })
+  });
+  hoveredResult = signal<ConstituencyResult | null>(null);
 
   private electionDataStore = inject(ElectionDataStore);
   private colorService = inject(ColorScaleService);
+
+  onPctSectorHover(constituencyResult: ConstituencyResult): void {
+    this.hoveredResult.set(constituencyResult);
+  }
+
+  onPctSectorMouseout(): void {
+    this.hoveredResult.set(null);
+  }
 
 }
 

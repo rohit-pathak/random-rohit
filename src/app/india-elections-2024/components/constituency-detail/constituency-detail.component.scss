@@ -1,0 +1,11 @@
+:host {
+  width: 100%;
+  .vote-pct {
+    display: flex;
+    gap: 1rem;
+
+    .vote-pct-detail {
+      flex: 1;
+    }
+  }
+}
