@@ -98,6 +98,7 @@ export class ConstituenciesMapComponent implements AfterViewInit {
   }
 
   private onConstituencyMouseover(hoveredConstituency: ConstituencyMapItem, element: Selection<BaseType, ConstituencyMapItem, null, undefined>): void {
+    element.raise();
     element.style('stroke-width', '0.04rem');
     this.hoveredConstituency.set(hoveredConstituency);
     select(this.tooltip().nativeElement)
