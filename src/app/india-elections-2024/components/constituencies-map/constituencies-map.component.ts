@@ -1,5 +1,5 @@
 import {
-  AfterViewInit,
+  AfterViewInit, ChangeDetectionStrategy,
   Component,
   effect,
   ElementRef,
@@ -20,7 +20,8 @@ import { ColorScaleService } from "../../services/color-scale.service";
   standalone: true,
   imports: [],
   templateUrl: './constituencies-map.component.html',
-  styleUrl: './constituencies-map.component.scss'
+  styleUrl: './constituencies-map.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ConstituenciesMapComponent implements AfterViewInit {
 

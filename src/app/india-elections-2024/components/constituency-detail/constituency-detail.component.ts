@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { Constituency, ConstituencyResult } from "../../models/models";
 import { TitleCasePipe } from "@angular/common";
 import { ElectionDataStore } from "../../election-data.store";
@@ -13,7 +13,8 @@ import { ColorScaleService } from "../../services/color-scale.service";
     DonutChartComponent
   ],
   templateUrl: './constituency-detail.component.html',
-  styleUrl: './constituency-detail.component.scss'
+  styleUrl: './constituency-detail.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ConstituencyDetailComponent {
   constituency = input.required<Constituency | null>();
