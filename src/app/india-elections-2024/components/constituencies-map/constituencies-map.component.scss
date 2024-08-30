@@ -6,5 +6,8 @@
   max-width: 250px;
   position: absolute;
   padding: 5px;
-  visibility: hidden;
+
+  &.hidden {
+    visibility: hidden;
+  }
 }

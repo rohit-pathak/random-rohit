@@ -14,11 +14,14 @@ import { BaseType, D3ZoomEvent, geoMercator, geoPath, select, Selection, zoom } 
 import { Feature, FeatureCollection } from "geojson";
 import { Constituency, ConstituencyResult } from "../../models/models";
 import { ColorScaleService } from "../../services/color-scale.service";
+import { NgClass } from "@angular/common";
 
 @Component({
   selector: 'app-constituencies-map',
   standalone: true,
-  imports: [],
+  imports: [
+    NgClass
+  ],
   templateUrl: './constituencies-map.component.html',
   styleUrl: './constituencies-map.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -31,6 +34,7 @@ export class ConstituenciesMapComponent implements AfterViewInit {
   private colorService = inject(ColorScaleService);
   private injector = inject(Injector);
   private mapSvg!: Selection<SVGSVGElement, unknown, HTMLElement, unknown>;
+  private blankArea!: Selection<SVGRectElement, unknown, HTMLElement, unknown>;
   private constituenciesGroup!: Selection<SVGGElement, unknown, HTMLElement, unknown>;
   private width = 600;
   private height = 600;
@@ -51,6 +55,7 @@ export class ConstituenciesMapComponent implements AfterViewInit {
       .append('svg')
       .attr('width', this.width)
       .attr('height', this.height);
+    this.addBlankHoverableArea();
     this.constituenciesGroup = this.mapSvg.append('g').attr('class', 'constituencies');
   }
 
@@ -98,14 +103,15 @@ export class ConstituenciesMapComponent implements AfterViewInit {
     this.constituencyClick.emit(c.constituency);
   }
 
-  private onConstituencyMouseover(hoveredConstituency: ConstituencyMapItem, element: Selection<BaseType, ConstituencyMapItem, null, undefined>): void {
+  private onConstituencyMouseover(hoveredItem: ConstituencyMapItem, element: Selection<BaseType, ConstituencyMapItem, null, undefined>): void {
     element.raise();
     element.style('stroke-width', '0.04rem');
-    this.hoveredConstituency.set(hoveredConstituency);
-    select(this.tooltip().nativeElement)
-      .style('visibility', 'visible');
-    this.constituenciesGroup.selectAll<SVGPathElement, ConstituencyMapItem>('path')
-      .style('opacity', d => d.constituency?.stateOrUT === hoveredConstituency.constituency?.stateOrUT ? 1 : 0.4);
+    // highlight all constituencies of the same state
+    if (hoveredItem.constituency.stateOrUT !== this.hoveredConstituency()?.constituency.stateOrUT) {
+      this.constituenciesGroup.selectAll<SVGPathElement, ConstituencyMapItem>('path')
+        .style('opacity', d => d.constituency?.stateOrUT === hoveredItem.constituency?.stateOrUT ? 1 : 0.4);
+    }
+    this.hoveredConstituency.set(hoveredItem);
   }
 
   private onConstituencyMousemove(event: MouseEvent): void {
@@ -116,11 +122,6 @@ export class ConstituenciesMapComponent implements AfterViewInit {
 
   private onConstituencyMouseout(element: Selection<BaseType, ConstituencyMapItem, null, undefined>): void {
     element.style('stroke-width', '0.015rem');
-    this.hoveredConstituency.set(null);
-    select(this.tooltip().nativeElement)
-      .style('visibility', 'hidden');
-    this.constituenciesGroup.selectAll<SVGPathElement, ConstituencyMapItem>('path')
-      .style('opacity', null);
   }
 
   private setZoomBehavior(): void {
@@ -133,6 +134,24 @@ export class ConstituenciesMapComponent implements AfterViewInit {
 
   private strokeColor(constituencyItem: ConstituencyMapItem): string {
     return this.islands.includes(constituencyItem.constituency?.stateOrUT) ? this.colorScheme(constituencyItem.results?.[0]?.partyName) : '#eee';
+  }
+
+  /**
+   * This adds a blank rect below the map so that we can reset opacity of all constituency paths
+   * when mouse is removed from the map.
+   * @private
+   */
+  private addBlankHoverableArea() {
+    this.mapSvg.append('rect')
+      .attr('width', this.width)
+      .attr('height', this.height)
+      .attr('fill', 'none')
+      .attr('pointer-events', 'fill')
+      .on('mouseover', () => {
+        this.constituenciesGroup.selectAll<SVGPathElement, ConstituencyMapItem>('path')
+          .style('opacity', null);
+        this.hoveredConstituency.set(null);
+      })
   }
 }
 
