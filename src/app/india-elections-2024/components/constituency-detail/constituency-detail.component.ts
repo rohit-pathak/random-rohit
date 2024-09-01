@@ -4,13 +4,15 @@ import { TitleCasePipe } from "@angular/common";
 import { ElectionDataStore } from "../../election-data.store";
 import { DonutChartComponent } from "../../../shared/components/donut-chart/donut-chart.component";
 import { ColorScaleService } from "../../services/color-scale.service";
+import { HorizontalBarChartComponent } from "../../../shared/horizontal-bar-chart/horizontal-bar-chart.component";
 
 @Component({
   selector: 'app-constituency-detail',
   standalone: true,
   imports: [
     TitleCasePipe,
-    DonutChartComponent
+    DonutChartComponent,
+    HorizontalBarChartComponent
   ],
   templateUrl: './constituency-detail.component.html',
   styleUrl: './constituency-detail.component.scss',
@@ -49,6 +51,12 @@ export class ConstituencyDetailComponent {
     const partyColorScale = this.colorService.partyColorScale();
     return (d: ConstituencyResult) => partyColorScale(d.partyName);
   });
+  totalVotesFn = computed<(d: ConstituencyResult) => number>(() => {
+    return (d: ConstituencyResult) => d.totalVotes;
+  });
+  barChartLabelFn = computed<(d: ConstituencyResult) => string>(() => {
+    return (d: ConstituencyResult) => d.candidateName;
+  })
   hoveredResult = signal<ConstituencyResult | null>(null);
 
   private electionDataStore = inject(ElectionDataStore);
