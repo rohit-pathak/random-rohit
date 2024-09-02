@@ -56,7 +56,10 @@ export class ConstituencyDetailComponent {
   });
   barChartLabelFn = computed<(d: ConstituencyResult) => string>(() => {
     return (d: ConstituencyResult) => d.candidateName;
-  })
+  });
+  barChartIdFn = computed<(d: ConstituencyResult) => string>(() => {
+    return (d: ConstituencyResult) => d.partyName;
+  });
   hoveredResult = signal<ConstituencyResult | null>(null);
 
   private electionDataStore = inject(ElectionDataStore);

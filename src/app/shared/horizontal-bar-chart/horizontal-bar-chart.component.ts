@@ -1,14 +1,16 @@
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
-  Component, effect,
+  Component,
+  effect,
   ElementRef,
-  inject, Injector,
+  inject,
+  Injector,
   input,
   output,
   viewChild
 } from '@angular/core';
-import { ScaleBand, scaleBand, ScaleLinear, scaleLinear, select, Selection } from "d3";
+import { axisBottom, axisLeft, ScaleLinear, scaleLinear, scaleOrdinal, ScaleOrdinal, select, Selection } from "d3";
 
 @Component({
   selector: 'app-horizontal-bar-chart',
@@ -22,18 +24,22 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
   data = input.required<T[]>();
   valueFn = input.required<(d: T) => number>();
   labelFn = input.required<(d: T) => string>();
+  idFn = input<(d: T) => string>();
 
   barMouseover = output<T>();
   barMouseout = output<void>();
 
   private svg!: Selection<SVGSVGElement, unknown, HTMLElement, unknown>;
   private barGroup!: Selection<SVGGElement, unknown, HTMLElement, unknown>;
+  private xAxisGroup!: Selection<SVGGElement, unknown, HTMLElement, unknown>;
+  private yAxisGroup!: Selection<SVGGElement, unknown, HTMLElement, unknown>;
   private width = 400; // TODO: update dynamically on resize
   private height = 0; // determined by number of bars
   private barHeight = 15;
   private barPadding = 1;
   private margin = {top: 10, bottom: 30, left: 100, right: 10};
   private xScale!: ScaleLinear<number, number, number>;
+  private yScale!: ScaleOrdinal<string, number>;
   // private yScale!: ScaleBand<string>;
 
   private svgRef = viewChild.required<ElementRef>('chart');
@@ -45,6 +51,10 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
       .attr('height', `${this.height}px`);
     this.barGroup = this.svg.append('g')
       .attr('class', 'bar-group');
+    this.xAxisGroup = this.svg.append('g')
+      .attr('class', 'x-axis');
+    this.yAxisGroup = this.svg.append('g')
+      .attr('class', 'y-axis');
     this.initializeDrawing();
   }
 
@@ -54,6 +64,7 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
       this.shiftChartForLeftMargin();
       this.setScales();
       this.drawBars();
+      this.drawAxes();
       this.setSVGHeight();
     }, {injector: this.injector});
   }
@@ -69,23 +80,39 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
       .unknown(0);
     const chartHeight = (this.barHeight + this.barPadding) * this.data().length;
     this.height = chartHeight + this.margin.top + this.margin.bottom;
-    // this.yScale = scaleBand()
-    //   .domain([...this.data()].sort((a, b) => this.valueFn()(a) - this.valueFn()(b)).map(this.labelFn()))
-    //   .range([this.height - this.margin.bottom, 0])
-    //   .paddingInner(this.barPadding);
+    this.yScale = scaleOrdinal<string, number>()
+      .domain(this.data().map(this.labelFn()))
+      .range(this.data().map((_, i) => i * (this.barHeight + this.barPadding)));
   }
 
   private drawBars(): void {
     this.barGroup
-      .attr('fill', 'grey') // TODO: decide colors
+      .attr('fill', 'black') // TODO: decide colors
       .selectAll<SVGRectElement, T>('.bar')
-      .data(this.data(), d => this.labelFn()(d))
+      .data(this.data(), d => {
+        const idFn = this.idFn();
+        return idFn ? idFn(d) : this.labelFn()(d)
+      })
       .join('rect')
       .attr('class', 'bar')
       .attr('x', 0)
-      .attr('y', (_, i) => i * (this.barHeight + this.barPadding))
-      .attr('width', d => this.xScale(this.valueFn()(d)))
-      .attr('height', this.barHeight);
+      .attr('height', this.barHeight)
+      .transition()
+      .attr('y', d => this.yScale(this.labelFn()(d)))
+      .attr('width', d => this.xScale(this.valueFn()(d)));
+  }
+
+  private drawAxes(): void {
+    const xAxis = axisBottom(this.xScale)
+      .ticks(4, "s");
+    this.xAxisGroup
+      .attr('transform', `translate(${this.margin.left}, ${this.height - this.margin.bottom})`)
+      .call(xAxis);
+    const yAxis = axisLeft(this.yScale);
+    this.yAxisGroup
+      .attr('transform', `translate(${this.margin.left}, ${this.margin.top + this.barHeight / 2})`)
+      .call(yAxis)
+      .call(yAxisGroup => yAxisGroup.select('.domain').remove());
   }
 
   private setSVGHeight(): void {
