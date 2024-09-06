@@ -116,6 +116,28 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
       .attr('transform', `translate(${this.margin.left}, ${this.margin.top + this.barHeight / 2})`)
       .call(yAxis)
       .call(yAxisGroup => yAxisGroup.select('.domain').remove());
+    this.truncateLabelText();
+  }
+
+  private truncateLabelText(): void {
+    const targetWidth = this.margin.left - 5;
+    const tempTextBox = this.svg
+      .selectAll<SVGTextElement, number>('.temp-box')
+      .data([1])
+      .join('text')
+      .attr('class', 'temp-box')
+      .attr('transform', 'translate(-50, -50)')
+      .attr('visibility', 'hidden');
+    this.yAxisGroup.selectAll<SVGTextElement, string>('.tick text')
+      .text(function(d) {
+        let truncatedText = d;
+        tempTextBox.text(truncatedText);
+        while (targetWidth < (tempTextBox.node()?.getBoundingClientRect().width ?? 0)) {
+          truncatedText = truncatedText.substring(0, truncatedText.length - 1);
+          tempTextBox.text(truncatedText);
+        }
+        return truncatedText === d ? d : `${truncatedText}...`;
+      });
   }
 
   private setSVGHeight(): void {
