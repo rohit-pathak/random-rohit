@@ -25,6 +25,7 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
   valueFn = input.required<(d: T) => number>();
   labelFn = input.required<(d: T) => string>();
   idFn = input<(d: T) => string>();
+  colorFn = input<(d: T) => string>();
 
   barMouseover = output<T>();
   barMouseout = output<void>();
@@ -40,7 +41,6 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
   private margin = {top: 10, bottom: 30, left: 100, right: 10};
   private xScale!: ScaleLinear<number, number, number>;
   private yScale!: ScaleOrdinal<string, number>;
-  // private yScale!: ScaleBand<string>;
 
   private svgRef = viewChild.required<ElementRef>('chart');
   private injector = inject(Injector);
@@ -87,7 +87,6 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
 
   private drawBars(): void {
     this.barGroup
-      .attr('fill', 'black') // TODO: decide colors
       .selectAll<SVGRectElement, T>('.bar')
       .data(this.data(), d => {
         const idFn = this.idFn();
@@ -95,6 +94,10 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
       })
       .join('rect')
       .attr('class', 'bar')
+      .attr('fill', d => {
+        const colorFn = this.colorFn();
+        return colorFn ? colorFn(d) : 'black';
+      })
       .attr('x', 0)
       .attr('height', this.barHeight)
       .transition()

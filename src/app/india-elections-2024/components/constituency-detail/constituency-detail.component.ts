@@ -47,7 +47,7 @@ export class ConstituencyDetailComponent {
   pctDonutLabelFn = computed<(d: ConstituencyResult) => string>(() => {
     return (d: ConstituencyResult) => `${d.partyName}: ${d.totalVotes / this.totalVotes()}`
   });
-  pctDonutColorFn = computed<(d: ConstituencyResult) => string>(() => {
+  colorFn = computed<(d: ConstituencyResult) => string>(() => {
     const partyColorScale = this.colorService.partyColorScale();
     return (d: ConstituencyResult) => partyColorScale(d.partyName);
   });
