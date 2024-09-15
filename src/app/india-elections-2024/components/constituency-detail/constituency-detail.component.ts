@@ -73,6 +73,14 @@ export class ConstituencyDetailComponent {
     this.hoveredResult.set(null);
   }
 
+  onBarMouseover(constituencyResult: ConstituencyResult): void {
+    this.hoveredResult.set(constituencyResult);
+  }
+
+  onBarMouseout(): void {
+    this.hoveredResult.set(null);
+  }
+
 }
 
 interface ConstituencyDetail {

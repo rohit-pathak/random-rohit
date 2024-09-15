@@ -14,7 +14,9 @@
     </div>
   </div>
   <app-horizontal-bar-chart [data]="constituencyDetail()?.results || []" [valueFn]="totalVotesFn()"
-                            [labelFn]="barChartLabelFn()" [idFn]="barChartIdFn()" [colorFn]="colorFn()" />
+                            [labelFn]="barChartLabelFn()" [idFn]="barChartIdFn()" [colorFn]="colorFn()"
+                            (barMouseover)="onBarMouseover($event)" (barMouseout)="onBarMouseout()"
+  />
 } @else {
   <p class="text-secondary">Click on a constituency in the map to see vote percentage and detailed vote distribution for
     candidates in that constituency.</p>

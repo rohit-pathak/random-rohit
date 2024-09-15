@@ -1,21 +1,33 @@
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
-  Component,
+  Component, computed,
   effect,
   ElementRef,
   inject,
   Injector,
   input,
   output,
+  signal,
   viewChild
 } from '@angular/core';
-import { axisBottom, axisLeft, ScaleLinear, scaleLinear, scaleOrdinal, ScaleOrdinal, select, Selection } from "d3";
+import {
+  axisBottom,
+  axisLeft,
+  BaseType,
+  ScaleLinear,
+  scaleLinear,
+  scaleOrdinal,
+  ScaleOrdinal,
+  select,
+  Selection
+} from "d3";
+import { CommonModule } from "@angular/common";
 
 @Component({
   selector: 'app-horizontal-bar-chart',
   standalone: true,
-  imports: [],
+  imports: [CommonModule],
   templateUrl: './horizontal-bar-chart.component.html',
   styleUrl: './horizontal-bar-chart.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -30,6 +42,8 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
   barMouseover = output<T>();
   barMouseout = output<void>();
 
+  hoveredDatum = signal<{label: string, value: string} | null>(null);
+
   private svg!: Selection<SVGSVGElement, unknown, HTMLElement, unknown>;
   private barGroup!: Selection<SVGGElement, unknown, HTMLElement, unknown>;
   private xAxisGroup!: Selection<SVGGElement, unknown, HTMLElement, unknown>;
@@ -41,6 +55,12 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
   private margin = {top: 10, bottom: 30, left: 100, right: 10};
   private xScale!: ScaleLinear<number, number, number>;
   private yScale!: ScaleOrdinal<string, number>;
+  private labelDataMap = computed<Record<string, T>>(() => {
+    return this.data().reduce((acc, curr) => {
+      acc[this.labelFn()(curr)] = curr;
+      return acc;
+    }, {} as Record<string, T>);
+  });
 
   private svgRef = viewChild.required<ElementRef>('chart');
   private injector = inject(Injector);
@@ -65,6 +85,7 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
       this.setScales();
       this.drawBars();
       this.drawAxes();
+      this.handleHover();
       this.setSVGHeight();
     }, {injector: this.injector});
   }
@@ -86,14 +107,21 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
   }
 
   private drawBars(): void {
-    this.barGroup
-      .selectAll<SVGRectElement, T>('.bar')
+    const bars = this.barGroup // group that contains both data and "hover" bars
+      .selectAll<SVGGElement, T>('.bar')
       .data(this.data(), d => {
         const idFn = this.idFn();
         return idFn ? idFn(d) : this.labelFn()(d)
       })
+      .join('g')
+      .attr('class', 'bar');
+
+    // draw data bars
+    bars
+      .selectAll<SVGRectElement, T>('.data-bar')
+      .data(d => [d])
       .join('rect')
-      .attr('class', 'bar')
+      .attr('class', 'data-bar')
       .attr('fill', d => {
         const colorFn = this.colorFn();
         return colorFn ? colorFn(d) : 'black';
@@ -103,6 +131,19 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
       .transition()
       .attr('y', d => this.yScale(this.labelFn()(d)))
       .attr('width', d => this.xScale(this.valueFn()(d)));
+
+    // draw hover bars
+    bars
+      .selectAll<SVGRectElement, T>('.hover-bar')
+      .data(d => [d])
+      .join('rect')
+      .attr('class', 'hover-bar')
+      .attr('fill', 'none')
+      .attr('pointer-events', 'fill')
+      .attr('x', 0)
+      .attr('height', this.barHeight)
+      .attr('y', d => this.yScale(this.labelFn()(d)))
+      .attr('width', this.xScale.range()?.at(-1) ?? 0);
   }
 
   private drawAxes(): void {
@@ -117,6 +158,25 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
       .call(yAxis)
       .call(yAxisGroup => yAxisGroup.select('.domain').remove());
     this.truncateLabelText();
+  }
+
+  private handleHover(): void {
+    const hoverableElements = this.svg.selectAll<BaseType, T | string>('.hover-bar, .y-axis .tick');
+    hoverableElements
+      .on('mouseover', (_, d) => {
+        const label = typeof d === 'string' ? d : this.labelFn()(d);
+        this.svg.selectAll<BaseType, T | string>('.bar, .y-axis .tick')
+          .attr('opacity', (d) => {
+            const isHoveredElement = typeof d === 'string' ? (label === d) : this.labelFn()(d) === label;
+            return isHoveredElement ? 1 : 0.4;
+          });
+        this.barMouseover.emit(this.labelDataMap()[label]);
+      })
+      .on('mouseout', () => {
+        this.svg.selectAll<BaseType, T | string>('.bar, .y-axis .tick')
+          .attr('opacity', null);
+        this.barMouseout.emit();
+      });
   }
 
   private truncateLabelText(): void {
@@ -142,6 +202,17 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
 
   private setSVGHeight(): void {
     this.svg.attr('height', `${this.height}px`);
+  }
+
+  // TODO: experiment with creating a y-axis using y-scale as ScaleOrdinal<T, number>
+  private getDatumWithToString(datum: T): T & { toString(): string } {
+    const label = this.labelFn()(datum);
+    return {
+      ...datum,
+      toString(): string {
+        return label
+      }
+    };
   }
 
 }
