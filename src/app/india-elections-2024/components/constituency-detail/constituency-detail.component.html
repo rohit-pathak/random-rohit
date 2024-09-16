@@ -3,8 +3,9 @@
   <h6>{{ constituencyDetail()?.constituency?.name | titlecase }}</h6>
   <div class="vote-pct">
     <app-donut-chart [data]="constituencyDetail()?.results || []" [valueFn]="pctDonutValueFn()"
-                     [labelFn]="pctDonutLabelFn()" [colorFn]="colorFn()"
-                     (sectorMouseover)="onPctSectorHover($event)" (sectorMouseout)="onPctSectorMouseout()"/>
+                     [labelFn]="pctDonutLabelFn()" [colorFn]="colorFn()" [highlight]="hoveredResult()"
+                     (sectorMouseover)="onPctSectorHover($event)" (sectorMouseout)="onPctSectorMouseout()"
+    />
     <div class="vote-pct-detail">
       @if (hoveredResult()) {
         <small>{{ hoveredResult()?.partyName }}</small>
@@ -15,7 +16,8 @@
   </div>
   <app-horizontal-bar-chart [data]="constituencyDetail()?.results || []" [valueFn]="totalVotesFn()"
                             [labelFn]="barChartLabelFn()" [idFn]="barChartIdFn()" [colorFn]="colorFn()"
-                            (barMouseover)="onBarMouseover($event)" (barMouseout)="onBarMouseout()"
+                            [highlight]="hoveredResult()" (barMouseover)="onBarMouseover($event)"
+                            (barMouseout)="onBarMouseout()"
   />
 } @else {
   <p class="text-secondary">Click on a constituency in the map to see vote percentage and detailed vote distribution for

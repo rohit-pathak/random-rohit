@@ -38,6 +38,7 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
   labelFn = input.required<(d: T) => string>();
   idFn = input<(d: T) => string>();
   colorFn = input<(d: T) => string>();
+  highlight = input<T | null>();
 
   barMouseover = output<T>();
   barMouseout = output<void>();
@@ -76,6 +77,7 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
     this.yAxisGroup = this.svg.append('g')
       .attr('class', 'y-axis');
     this.initializeDrawing();
+    this.highlightInputDatum();
   }
 
   private initializeDrawing(): void {
@@ -87,6 +89,17 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
       this.drawAxes();
       this.handleHover();
       this.setSVGHeight();
+    }, {injector: this.injector});
+  }
+
+  private highlightInputDatum(): void {
+    effect(() => {
+      const highlightDatum = this.highlight();
+      if (!this.data()?.length || !highlightDatum) {
+        this.unHighlightElements();
+        return;
+      }
+      this.highlightElementsForDatum(highlightDatum);
     }, {injector: this.injector});
   }
 
@@ -141,7 +154,7 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
       .attr('fill', 'none')
       .attr('pointer-events', 'fill')
       .attr('x', 0)
-      .attr('height', this.barHeight)
+      .attr('height', this.barHeight + this.barPadding)
       .attr('y', d => this.yScale(this.labelFn()(d)))
       .attr('width', this.xScale.range()?.at(-1) ?? 0);
   }
@@ -164,17 +177,12 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
     const hoverableElements = this.svg.selectAll<BaseType, T | string>('.hover-bar, .y-axis .tick');
     hoverableElements
       .on('mouseover', (_, d) => {
-        const label = typeof d === 'string' ? d : this.labelFn()(d);
-        this.svg.selectAll<BaseType, T | string>('.bar, .y-axis .tick')
-          .attr('opacity', (d) => {
-            const isHoveredElement = typeof d === 'string' ? (label === d) : this.labelFn()(d) === label;
-            return isHoveredElement ? 1 : 0.4;
-          });
-        this.barMouseover.emit(this.labelDataMap()[label]);
+        const hoveredDatum = typeof d === 'string' ? this.labelDataMap()[d] : d;
+        this.highlightElementsForDatum(hoveredDatum);
+        this.barMouseover.emit(hoveredDatum);
       })
       .on('mouseout', () => {
-        this.svg.selectAll<BaseType, T | string>('.bar, .y-axis .tick')
-          .attr('opacity', null);
+        this.unHighlightElements();
         this.barMouseout.emit();
       });
   }
@@ -198,6 +206,24 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
         }
         return truncatedText === d ? d : `${truncatedText}...`;
       });
+  }
+
+  private highlightElementsForDatum(datum: T): void {
+    this.svg.selectAll<BaseType, T | string>('.bar, .y-axis .tick')
+      .attr('opacity', (d) => {
+        let isElementToHighlight: boolean;
+        if (typeof d === 'string') {
+          isElementToHighlight = d === this.labelFn()(datum);
+        } else {
+          isElementToHighlight = this.labelFn()(d) === this.labelFn()(datum);
+        }
+        return isElementToHighlight ? 1 : 0.4;
+      });
+  }
+
+  private unHighlightElements(): void {
+    this.svg.selectAll<BaseType, T | string>('.bar, .y-axis .tick')
+      .attr('opacity', null);
   }
 
   private setSVGHeight(): void {

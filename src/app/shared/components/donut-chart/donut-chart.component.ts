@@ -24,6 +24,7 @@ export class DonutChartComponent<T> implements AfterViewInit {
   valueFn = input.required<(d: T) => number>();
   labelFn = input.required<(d: T) => string>();
   colorFn = input.required<(d: T) => string>();
+  highlight = input<T | null>();
 
   sectorMouseover = output<T>();
   sectorMouseout = output<void>();
@@ -43,6 +44,7 @@ export class DonutChartComponent<T> implements AfterViewInit {
       .attr('class', 'arc-group')
       .attr('transform', `translate(${this.width / 2},${this.width / 2})`);
     this.initializeDrawing();
+    this.highlightInputDatum();
   }
 
   private initializeDrawing(): void {
@@ -52,6 +54,16 @@ export class DonutChartComponent<T> implements AfterViewInit {
       }
       // TODO: update svg on resize
       this.drawChart();
+    }, {injector: this.injector});
+  }
+
+  private highlightInputDatum(): void {
+    effect(() => {
+      const highlightDatum = this.highlight();
+      if (!this.data() || !this.data().length || !highlightDatum) {
+        return;
+      }
+      this.highlightSector(highlightDatum);
     }, {injector: this.injector});
   }
 
@@ -74,8 +86,7 @@ export class DonutChartComponent<T> implements AfterViewInit {
   }
 
   private onSectorMouseover(pieDatum: PieArcDatum<T>): void {
-    this.arcGroup.selectAll<SVGPathElement, PieArcDatum<T>>('path')
-      .attr('opacity', d => this.labelFn()(d.data) === this.labelFn()(pieDatum.data) ? 1 : 0.5)
+    this.highlightSector(pieDatum.data);
     this.sectorMouseover.emit(pieDatum.data);
   }
 
@@ -83,5 +94,10 @@ export class DonutChartComponent<T> implements AfterViewInit {
     this.arcGroup.selectAll('path')
       .attr('opacity', 1);
     this.sectorMouseout.emit();
+  }
+
+  private highlightSector(datum: T): void {
+    this.arcGroup.selectAll<SVGPathElement, PieArcDatum<T>>('path')
+      .attr('opacity', d => this.labelFn()(d.data) === this.labelFn()(datum) ? 1 : 0.4);
   }
 }
