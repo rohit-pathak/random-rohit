@@ -64,6 +64,7 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
   });
 
   private svgRef = viewChild.required<ElementRef>('chart');
+  private tooltip = viewChild.required<ElementRef>('tooltip');
   private injector = inject(Injector);
 
   ngAfterViewInit() {
@@ -89,7 +90,7 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
       this.drawAxes();
       this.handleHover();
       this.setSVGHeight();
-    }, {injector: this.injector});
+    }, {injector: this.injector, allowSignalWrites: true});
   }
 
   private highlightInputDatum(): void {
@@ -179,10 +180,17 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
       .on('mouseover', (_, d) => {
         const hoveredDatum = typeof d === 'string' ? this.labelDataMap()[d] : d;
         this.highlightElementsForDatum(hoveredDatum);
+        this.hoveredDatum.set({ label: this.labelFn()(hoveredDatum), value: `${this.valueFn()(hoveredDatum)}` });
         this.barMouseover.emit(hoveredDatum);
+      })
+      .on('mousemove', (event: MouseEvent) => {
+        select(this.tooltip().nativeElement)
+          .style('left', `${event.pageX + 10}px`)
+          .style('top', `${event.pageY + 20}px`);
       })
       .on('mouseout', () => {
         this.unHighlightElements();
+        this.hoveredDatum.set(null);
         this.barMouseout.emit();
       });
   }
