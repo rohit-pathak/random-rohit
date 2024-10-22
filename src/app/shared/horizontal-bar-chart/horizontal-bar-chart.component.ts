@@ -214,14 +214,11 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
   }
 
   private highlightElementsForDatum(datum: T): void {
-    this.svg.selectAll<BaseType, T | string>('.bar, .y-axis .tick')
+    const domainDatum = this.asDomainDatum(datum);
+    this.svg.selectAll<BaseType, DomainDatum<T>>('.bar, .y-axis .tick')
       .attr('opacity', (d) => {
-        let isElementToHighlight: boolean;
-        if (typeof d === 'string') {
-          isElementToHighlight = d === this.labelFn()(datum);
-        } else {
-          isElementToHighlight = this.labelFn()(d) === this.labelFn()(datum);
-        }
+        // TODO: this equality check is a hack. Perhaps accept and equality fn?
+        const isElementToHighlight = domainDatum.toString() === d.toString() && domainDatum.valueOf() === d.valueOf();
         return isElementToHighlight ? 1 : 0.4;
       });
   }
