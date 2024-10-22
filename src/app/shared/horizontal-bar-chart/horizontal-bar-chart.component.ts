@@ -12,7 +12,7 @@ import {
   viewChild
 } from '@angular/core';
 import {
-  axisBottom,
+  axisBottom, AxisDomain,
   axisLeft,
   BaseType,
   ScaleLinear,
@@ -45,6 +45,10 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
 
   hoveredDatum = signal<{label: string, value: string} | null>(null);
 
+  // domainData transformation helps d3 figure out values for the scale and axis
+  private domainData = computed<DomainDatum<T>[]>(() => {
+    return this.data().map(d => this.asDomainDatum(d));
+  })
   private svg!: Selection<SVGSVGElement, unknown, HTMLElement, unknown>;
   private barGroup!: Selection<SVGGElement, unknown, HTMLElement, unknown>;
   private xAxisGroup!: Selection<SVGGElement, unknown, HTMLElement, unknown>;
@@ -55,13 +59,7 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
   private barPadding = 1;
   private margin = {top: 10, bottom: 30, left: 100, right: 10};
   private xScale!: ScaleLinear<number, number, number>;
-  private yScale!: ScaleOrdinal<string, number>;
-  private labelDataMap = computed<Record<string, T>>(() => {
-    return this.data().reduce((acc, curr) => {
-      acc[this.labelFn()(curr)] = curr;
-      return acc;
-    }, {} as Record<string, T>);
-  });
+  private yScale!: ScaleOrdinal<DomainDatum<T>, number>;
 
   private svgRef = viewChild.required<ElementRef>('chart');
   private tooltip = viewChild.required<ElementRef>('tooltip');
@@ -96,7 +94,7 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
   private highlightInputDatum(): void {
     effect(() => {
       const highlightDatum = this.highlight();
-      if (!this.data()?.length || !highlightDatum) {
+      if (!this.domainData()?.length || !highlightDatum) {
         this.unHighlightElements();
         return;
       }
@@ -110,20 +108,20 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
 
   private setScales(): void {
     this.xScale = scaleLinear()
-      .domain([0, Math.max(...this.data().map(this.valueFn()))])
+      .domain([0, Math.max(...this.domainData().map(this.valueFn()))])
       .range([0, this.width - this.margin.left - this.margin.right])
       .unknown(0);
-    const chartHeight = (this.barHeight + this.barPadding) * this.data().length;
+    const chartHeight = (this.barHeight + this.barPadding) * this.domainData().length;
     this.height = chartHeight + this.margin.top + this.margin.bottom;
-    this.yScale = scaleOrdinal<string, number>()
-      .domain(this.data().map(this.labelFn()))
-      .range(this.data().map((_, i) => i * (this.barHeight + this.barPadding)));
+    this.yScale = scaleOrdinal<DomainDatum<T>, number>()
+      .domain(this.domainData())
+      .range(this.domainData().map((_, i) => i * (this.barHeight + this.barPadding)));
   }
 
   private drawBars(): void {
     const bars = this.barGroup // group that contains both data and "hover" bars
       .selectAll<SVGGElement, T>('.bar')
-      .data(this.data(), d => {
+      .data(this.domainData(), d => {
         const idFn = this.idFn();
         return idFn ? idFn(d) : this.labelFn()(d)
       })
@@ -143,7 +141,7 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
       .attr('x', 0)
       .attr('height', this.barHeight)
       .transition()
-      .attr('y', d => this.yScale(this.labelFn()(d)))
+      .attr('y', d => this.yScale(d))
       .attr('width', d => this.xScale(this.valueFn()(d)));
 
     // draw hover bars
@@ -156,7 +154,7 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
       .attr('pointer-events', 'fill')
       .attr('x', 0)
       .attr('height', this.barHeight + this.barPadding)
-      .attr('y', d => this.yScale(this.labelFn()(d)))
+      .attr('y', d => this.yScale(d))
       .attr('width', this.xScale.range()?.at(-1) ?? 0);
   }
 
@@ -175,10 +173,9 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
   }
 
   private handleHover(): void {
-    const hoverableElements = this.svg.selectAll<BaseType, T | string>('.hover-bar, .y-axis .tick');
+    const hoverableElements = this.svg.selectAll<BaseType, T>('.hover-bar, .y-axis .tick');
     hoverableElements
-      .on('mouseover', (_, d) => {
-        const hoveredDatum = typeof d === 'string' ? this.labelDataMap()[d] : d;
+      .on('mouseover', (_, hoveredDatum) => {
         this.highlightElementsForDatum(hoveredDatum);
         this.hoveredDatum.set({ label: this.labelFn()(hoveredDatum), value: `${this.valueFn()(hoveredDatum)}` });
         this.barMouseover.emit(hoveredDatum);
@@ -204,9 +201,9 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
       .attr('class', 'temp-box')
       .attr('transform', 'translate(-50, -50)')
       .attr('visibility', 'hidden');
-    this.yAxisGroup.selectAll<SVGTextElement, string>('.tick text')
+    this.yAxisGroup.selectAll<SVGTextElement, DomainDatum<T>>('.tick text')
       .text(function(d) {
-        let truncatedText = d;
+        let truncatedText = d.toString();
         tempTextBox.text(truncatedText);
         while (targetWidth < (tempTextBox.node()?.getBoundingClientRect().width ?? 0)) {
           truncatedText = truncatedText.substring(0, truncatedText.length - 1);
@@ -238,15 +235,16 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
     this.svg.attr('height', `${this.height}px`);
   }
 
-  // TODO: experiment with creating a y-axis using y-scale as ScaleOrdinal<T, number>
-  private getDatumWithToString(datum: T): T & { toString(): string } {
-    const label = this.labelFn()(datum);
+  private asDomainDatum(datum: T): DomainDatum<T> {
+    const label = this.labelFn ? this.labelFn()(datum) : '';
+    const value = this.valueFn ? this.valueFn()(datum) : 0;
     return {
       ...datum,
-      toString(): string {
-        return label
-      }
+      toString: () => label,
+      valueOf: () => value
     };
   }
 
 }
+
+type DomainDatum<T> = T & { toString(): string } & AxisDomain;
