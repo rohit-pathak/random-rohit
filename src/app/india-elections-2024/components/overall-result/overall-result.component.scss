@@ -1,5 +1,24 @@
-
 .overall-result-viz-container {
   display: flex;
   gap: 1rem;
+
+  app-constituencies-map {
+    flex: 1 1 70%; /* 70% width */
+    min-width: 0;
+  }
+
+  app-constituency-detail {
+    flex: 1 1 30%; /* 30% width */
+    min-width: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .overall-result-viz-container {
+    flex-wrap: wrap;
+
+    app-constituencies-map, app-constituency-detail {
+      flex: 1 1 100%; /* On smaller screens, both take full width */
+    }
+  }
 }

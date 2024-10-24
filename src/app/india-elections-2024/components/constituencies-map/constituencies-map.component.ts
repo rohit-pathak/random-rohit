@@ -4,7 +4,7 @@ import {
   effect,
   ElementRef,
   inject,
-  Injector,
+  Injector, OnDestroy,
   output,
   signal,
   viewChild
@@ -15,6 +15,7 @@ import { Feature, FeatureCollection } from "geojson";
 import { Constituency, ConstituencyResult } from "../../models/models";
 import { ColorScaleService } from "../../services/color-scale.service";
 import { NgClass } from "@angular/common";
+import { ResizeObserverService } from "../../../shared/services/resize-observer.service";
 
 @Component({
   selector: 'app-constituencies-map',
@@ -26,22 +27,21 @@ import { NgClass } from "@angular/common";
   styleUrl: './constituencies-map.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ConstituenciesMapComponent implements AfterViewInit {
-
+export class ConstituenciesMapComponent implements AfterViewInit, OnDestroy {
   constituencyClick = output<Constituency>();
 
   private electionDataStore = inject(ElectionDataStore);
   private colorService = inject(ColorScaleService);
   private injector = inject(Injector);
   private mapSvg!: Selection<SVGSVGElement, unknown, HTMLElement, unknown>;
-  private blankArea!: Selection<SVGRectElement, unknown, HTMLElement, unknown>;
   private constituenciesGroup!: Selection<SVGGElement, unknown, HTMLElement, unknown>;
-  private width = 600;
-  private height = 600;
   private projection = geoMercator();
   private colorScheme = this.colorService.partyColorScale();
   private islands = ['U06', 'U01'];
   private tooltip = viewChild.required<ElementRef>('tooltip');
+  private hostElement = inject(ElementRef);
+  private resizeObserverService = inject(ResizeObserverService);
+  private resize = this.resizeObserverService.observeResize(this.hostElement);
 
   hoveredConstituency = signal<ConstituencyMapItem | null>(null);
 
@@ -50,11 +50,15 @@ export class ConstituenciesMapComponent implements AfterViewInit {
     this.drawOnDataChange();
   }
 
+  ngOnDestroy(): void {
+    this.resizeObserverService.unObserve(this.hostElement);
+  }
+
   private initializeSvg(): void {
     this.mapSvg = select('.overall-result-viz-container .map-container')
       .append('svg')
-      .attr('width', this.width)
-      .attr('height', this.height);
+      .attr('width', this.resize().width ?? 10)
+      .attr('height', this.resize().width ?? 10); // make height equal to width
     this.addBlankHoverableArea();
     this.constituenciesGroup = this.mapSvg.append('g').attr('class', 'constituencies');
   }
@@ -63,16 +67,23 @@ export class ConstituenciesMapComponent implements AfterViewInit {
     effect(() => {
       const mapGeoJson = this.electionDataStore.constituencies2024Map();
       const constituencies = this.electionDataStore.constituencies();
-      if (!mapGeoJson || !constituencies) {
+      const resize = this.resize();
+      if (!mapGeoJson || !constituencies || !resize) {
         return;
       }
+      this.mapSvg
+        .attr('width', resize.width)
+        .attr('height', resize.width)
+        .select('.hoverable-area')
+        .attr('width', resize.width)
+        .attr('height', resize.width);
       this.drawMap(mapGeoJson);
       this.setZoomBehavior();
     }, { injector: this.injector });
   }
 
   private drawMap(geoJson: FeatureCollection): void {
-    this.projection.fitSize([this.width, this.height], geoJson);
+    this.projection.fitSize([this.resize().width, this.resize().height], geoJson);
     const pathGenerator = geoPath().projection(this.projection);
     const component = this; // save reference to pass in to event listeners
     this.constituenciesGroup.selectAll('path')
@@ -127,7 +138,7 @@ export class ConstituenciesMapComponent implements AfterViewInit {
   private setZoomBehavior(): void {
     const zoomBehavior = zoom<SVGSVGElement, unknown>()
       .scaleExtent([1, 10])
-      .translateExtent([[0, 0], [this.width, this.height]])
+      .translateExtent([[0, 0], [this.resize().width, this.resize().height]])
       .on('zoom', (e: D3ZoomEvent<SVGSVGElement, unknown>) => this.constituenciesGroup.attr('transform', e.transform.toString()));
     this.mapSvg.call(zoomBehavior);
   }
@@ -142,12 +153,16 @@ export class ConstituenciesMapComponent implements AfterViewInit {
    * @private
    */
   private addBlankHoverableArea() {
-    this.mapSvg.append('rect')
-      .attr('width', this.width)
-      .attr('height', this.height)
+    if (!this.mapSvg.select('.hoverable-area').empty()) {
+      return;
+    }
+    this.mapSvg.append<SVGRectElement>('rect')
+      .attr('class', 'hoverable-area')
+      .attr('width', this.resize().width)
+      .attr('height', this.resize().width)
       .attr('fill', 'none')
       .attr('pointer-events', 'fill')
-      .on('mouseover', () => {
+      .on('mouseover', () => { // TODO: also clear tooltip on svg mouseout in case map is zoomed in
         this.constituenciesGroup.selectAll<SVGPathElement, ConstituencyMapItem>('path')
           .style('opacity', null);
         this.hoveredConstituency.set(null);
