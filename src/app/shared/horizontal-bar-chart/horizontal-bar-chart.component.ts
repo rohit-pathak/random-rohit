@@ -23,6 +23,7 @@ import {
   Selection
 } from "d3";
 import { CommonModule } from "@angular/common";
+import { ResizeObserverService } from "../services/resize-observer.service";
 
 @Component({
   selector: 'app-horizontal-bar-chart',
@@ -53,8 +54,6 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
   private barGroup!: Selection<SVGGElement, unknown, HTMLElement, unknown>;
   private xAxisGroup!: Selection<SVGGElement, unknown, HTMLElement, unknown>;
   private yAxisGroup!: Selection<SVGGElement, unknown, HTMLElement, unknown>;
-  private width = 400; // TODO: update dynamically on resize
-  private height = 0; // determined by number of bars
   private barHeight = 15;
   private barPadding = 1;
   private margin = {top: 10, bottom: 30, left: 100, right: 10};
@@ -64,10 +63,15 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
   private svgRef = viewChild.required<ElementRef>('chart');
   private tooltip = viewChild.required<ElementRef>('tooltip');
   private injector = inject(Injector);
+  private resizeObserverService = inject(ResizeObserverService);
+  private hostElement = inject(ElementRef);
+  private resize = this.resizeObserverService.observeResize(this.hostElement);
+  private width = computed(() => this.resize().width);
+  private height = 0; // determined by number of bars
 
   ngAfterViewInit() {
     this.svg = select<SVGSVGElement, unknown>(this.svgRef().nativeElement)
-      .attr('width', `${this.width}px`)
+      .attr('width', `${this.width()}px`)
       .attr('height', `${this.height}px`);
     this.barGroup = this.svg.append('g')
       .attr('class', 'bar-group');
@@ -81,6 +85,10 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
 
   private initializeDrawing(): void {
     effect(() => {
+      if (!this.width()) {
+        return;
+      }
+      this.svg.attr('width', this.width());
       // TODO: determine left margin based on max label length before setting scales
       this.shiftChartForLeftMargin();
       this.setScales();
@@ -109,7 +117,7 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
   private setScales(): void {
     this.xScale = scaleLinear()
       .domain([0, Math.max(...this.domainData().map(this.valueFn()))])
-      .range([0, this.width - this.margin.left - this.margin.right])
+      .range([0, this.width() - this.margin.left - this.margin.right])
       .unknown(0);
     const chartHeight = (this.barHeight + this.barPadding) * this.domainData().length;
     this.height = chartHeight + this.margin.top + this.margin.bottom;
