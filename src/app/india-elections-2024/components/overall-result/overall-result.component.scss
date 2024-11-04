@@ -2,13 +2,18 @@
   display: flex;
   gap: 1rem;
 
-  app-constituencies-map {
-    flex: 1 1 70%; /* 70% width */
+  .result-overview {
+    flex: 1 1 60%; /* 70% width */
     min-width: 0;
+
+    .total-stats {
+      display: flex;
+      justify-items: center;
+    }
   }
 
   app-constituency-detail {
-    flex: 1 1 30%; /* 30% width */
+    flex: 1 1 40%; /* 30% width */
     min-width: 0;
   }
 }
@@ -17,7 +22,7 @@
   .overall-result-viz-container {
     flex-wrap: wrap;
 
-    app-constituencies-map, app-constituency-detail {
+    .result-overview, app-constituency-detail {
       flex: 1 1 100%; /* On smaller screens, both take full width */
     }
   }
