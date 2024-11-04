@@ -211,13 +211,14 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
       .attr('visibility', 'hidden');
     this.yAxisGroup.selectAll<SVGTextElement, DomainDatum<T>>('.tick text')
       .text(function(d) {
+        const originalText = d.toString();
         let truncatedText = d.toString();
         tempTextBox.text(truncatedText);
         while (targetWidth < (tempTextBox.node()?.getBoundingClientRect().width ?? 0)) {
           truncatedText = truncatedText.substring(0, truncatedText.length - 1);
           tempTextBox.text(truncatedText);
         }
-        return truncatedText === d ? d : `${truncatedText}...`;
+        return truncatedText === originalText ? originalText : `${truncatedText}...`;
       });
   }
 
