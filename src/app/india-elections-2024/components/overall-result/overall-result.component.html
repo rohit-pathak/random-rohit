@@ -3,6 +3,7 @@
     <app-constituencies-map (constituencyClick)="onConstituencyClick($event)"/>
     <div class="total-stats">
       <app-total-seats />
+      <app-total-vote-share />
     </div>
   </div>
   <app-constituency-detail [constituency]="selectedConstituency()"/>
