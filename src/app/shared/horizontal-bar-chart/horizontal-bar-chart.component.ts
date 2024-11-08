@@ -49,7 +49,7 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
   // domainData transformation helps d3 figure out values for the scale and axis
   private domainData = computed<DomainDatum<T>[]>(() => {
     return this.data().map(d => this.asDomainDatum(d));
-  })
+  });
   private svg!: Selection<SVGSVGElement, unknown, HTMLElement, unknown>;
   private barGroup!: Selection<SVGGElement, unknown, HTMLElement, unknown>;
   private xAxisGroup!: Selection<SVGGElement, unknown, HTMLElement, unknown>;

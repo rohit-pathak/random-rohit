@@ -1,20 +1,27 @@
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
-  Component,
+  Component, computed,
   effect,
   ElementRef,
   inject,
   Injector,
-  input, output,
+  input,
+  output,
+  signal,
   viewChild
 } from '@angular/core';
 import { arc, pie, PieArcDatum, select, Selection } from "d3";
+import { TooltipComponent } from "../tooltip/tooltip.component";
+import { CommonModule } from "@angular/common";
 
 @Component({
   selector: 'app-donut-chart',
   standalone: true,
-  imports: [],
+  imports: [
+    CommonModule,
+    TooltipComponent
+  ],
   templateUrl: './donut-chart.component.html',
   styleUrl: './donut-chart.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush
@@ -32,9 +39,19 @@ export class DonutChartComponent<T> implements AfterViewInit {
   private svg!: Selection<SVGSVGElement, unknown, HTMLElement, unknown>;
   private arcGroup!: Selection<SVGGElement, unknown, HTMLElement, unknown>;
   private width = 100; // TODO: update dynamically on resize
-
   private svgRef = viewChild.required<ElementRef>('chart');
   private injector = inject(Injector);
+
+  host = inject(ElementRef<HTMLElement>);
+  tooltipEvent = signal<Event | null>(null);
+  selectedDatum = signal<T | null>(null);
+  tooltipData = computed<{ title: string, value: number} | null>(() => {
+    const selectedDatum = this.selectedDatum();
+    if (!selectedDatum) {
+      return null;
+    }
+    return { title: this.labelFn()(selectedDatum), value: this.valueFn()(selectedDatum) };
+  });
 
   ngAfterViewInit(): void {
     this.svg = select<SVGSVGElement, unknown>(this.svgRef().nativeElement)
@@ -81,18 +98,22 @@ export class DonutChartComponent<T> implements AfterViewInit {
       .attr('d', arcGenerator)
       .attr('fill', d => this.colorFn()(d.data))
       .attr('stroke', 'white')
-      .on('mouseover', (_, d) => this.onSectorMouseover(d))
+      .on('mouseover', (event: Event, d) => this.onSectorMouseover(d))
+      .on('mousemove', (event: Event) => this.tooltipEvent.set(event))
       .on('mouseout', () => this.onSectorMouseout());
   }
 
   private onSectorMouseover(pieDatum: PieArcDatum<T>): void {
     this.highlightSector(pieDatum.data);
+    this.selectedDatum.set(pieDatum.data);
     this.sectorMouseover.emit(pieDatum.data);
   }
 
   private onSectorMouseout(): void {
     this.arcGroup.selectAll('path')
       .attr('opacity', 1);
+    this.selectedDatum.set(null);
+    this.tooltipEvent.set(null);
     this.sectorMouseout.emit();
   }
 
