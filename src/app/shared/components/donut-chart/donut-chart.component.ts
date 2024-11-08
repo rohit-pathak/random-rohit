@@ -32,6 +32,7 @@ export class DonutChartComponent<T> implements AfterViewInit {
   labelFn = input.required<(d: T) => string>();
   colorFn = input.required<(d: T) => string>();
   highlight = input<T | null>();
+  showTooltip = input(true);
 
   sectorMouseover = output<T>();
   sectorMouseout = output<void>();
