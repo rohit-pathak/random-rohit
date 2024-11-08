@@ -22,6 +22,6 @@ export class TooltipComponent {
       return { left: '0px', top: '0px' };
     }
     const [left, top] = pointer(trigger, this.target());
-    return { left: `${left}px`, top: `${top}px` };
+    return { left: `${left + 14}px`, top: `${top - 8}px` };
   });
 }
