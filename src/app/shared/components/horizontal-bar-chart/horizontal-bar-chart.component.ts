@@ -1,7 +1,8 @@
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
-  Component, computed,
+  Component,
+  computed,
   effect,
   ElementRef,
   inject,
@@ -12,7 +13,8 @@ import {
   viewChild
 } from '@angular/core';
 import {
-  axisBottom, AxisDomain,
+  axisBottom,
+  AxisDomain,
   axisLeft,
   BaseType,
   ScaleLinear,
@@ -23,7 +25,7 @@ import {
   Selection
 } from "d3";
 import { CommonModule } from "@angular/common";
-import { ResizeObserverService } from "../../services/resize-observer.service";
+import { ResizeDirective } from "../../directives/resize.directive";
 
 @Component({
   selector: 'app-horizontal-bar-chart',
@@ -31,7 +33,8 @@ import { ResizeObserverService } from "../../services/resize-observer.service";
   imports: [CommonModule],
   templateUrl: './horizontal-bar-chart.component.html',
   styleUrl: './horizontal-bar-chart.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  hostDirectives: [ResizeDirective],
 })
 export class HorizontalBarChartComponent<T> implements AfterViewInit {
   data = input.required<T[]>();
@@ -63,9 +66,7 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
   private svgRef = viewChild.required<ElementRef>('chart');
   private tooltip = viewChild.required<ElementRef>('tooltip');
   private injector = inject(Injector);
-  private resizeObserverService = inject(ResizeObserverService);
-  private hostElement = inject(ElementRef);
-  private resize = this.resizeObserverService.observeResize(this.hostElement);
+  private resize = inject(ResizeDirective).resize;
   private width = computed(() => this.resize().width);
   private height = 0; // determined by number of bars
 
