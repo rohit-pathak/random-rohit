@@ -5,20 +5,19 @@ import { ElementRef, Injectable, signal, Signal, WritableSignal } from '@angular
 })
 export class ResizeObserverService {
 
-  private elementToResizeSignals = new Map<Element, WritableSignal<Dimensions>>();
+  private elementToResizeSignals = new Map<Element, WritableSignal<DOMRectReadOnly>>();
 
   private resizeObserver: ResizeObserver = new ResizeObserver((entries: ResizeObserverEntry[]) => {
     for (const entry of entries) {
-      const cr = entry.contentRect;
       const dimensionSignal = this.elementToResizeSignals.get(entry.target);
       if (dimensionSignal) {
-        dimensionSignal.set({width: cr.width, height: cr.height});
+        dimensionSignal.set(entry.contentRect);
       }
     }
   });
 
-  public observeResize(elementRef: ElementRef<Element>): Signal<Dimensions> {
-    this.elementToResizeSignals.set(elementRef.nativeElement, signal({ width: 0, height: 0 }));
+  public observeResize(elementRef: ElementRef<Element>): Signal<DOMRectReadOnly> {
+    this.elementToResizeSignals.set(elementRef.nativeElement, signal(elementRef.nativeElement.getBoundingClientRect()));
     this.resizeObserver.observe(elementRef.nativeElement);
     return this.elementToResizeSignals.get(elementRef.nativeElement)!;
   }
@@ -27,9 +26,4 @@ export class ResizeObserverService {
     this.resizeObserver.unobserve(elementRef.nativeElement);
     this.elementToResizeSignals.delete(elementRef.nativeElement);
   }
-}
-
-interface Dimensions {
-  width: number;
-  height: number;
 }
