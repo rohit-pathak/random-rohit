@@ -23,7 +23,7 @@ import {
   Selection
 } from "d3";
 import { CommonModule } from "@angular/common";
-import { ResizeObserverService } from "../services/resize-observer.service";
+import { ResizeObserverService } from "../../services/resize-observer.service";
 
 @Component({
   selector: 'app-horizontal-bar-chart',
