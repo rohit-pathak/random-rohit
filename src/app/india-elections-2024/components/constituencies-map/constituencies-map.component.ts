@@ -96,6 +96,7 @@ export class ConstituenciesMapComponent implements AfterViewInit {
       .attr('stroke', d => this.strokeColor(d))
       .attr('stroke-width', '0.015rem')
       .attr('fill', d => this.colorScheme(d.results?.[0]?.partyName))
+      .attr('cursor', 'pointer')
       .on('click', (_, d) => this.onConstituencyClick(d))
       .on('mouseover', function(e, d) {
         component.onConstituencyMouseover(d, select<BaseType, ConstituencyMapItem>(this));
@@ -112,7 +113,9 @@ export class ConstituenciesMapComponent implements AfterViewInit {
 
   private onConstituencyMouseover(hoveredItem: ConstituencyMapItem, element: Selection<BaseType, ConstituencyMapItem, null, undefined>): void {
     element.raise();
-    element.style('stroke-width', '0.04rem');
+    element
+      .style('stroke-width', '0.04rem')
+      .style('stroke', 'black');
     // highlight all constituencies of the same state
     if (hoveredItem.constituency.stateOrUT !== this.hoveredConstituency()?.constituency.stateOrUT) {
       this.constituenciesGroup.selectAll<SVGPathElement, ConstituencyMapItem>('path')
@@ -128,7 +131,9 @@ export class ConstituenciesMapComponent implements AfterViewInit {
   }
 
   private onConstituencyMouseout(element: Selection<BaseType, ConstituencyMapItem, null, undefined>): void {
-    element.style('stroke-width', '0.015rem');
+    element
+      .style('stroke-width', '0.015rem')
+      .style('stroke', d => this.strokeColor(d));
   }
 
   private setZoomBehavior(): void {
