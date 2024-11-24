@@ -1,10 +1,11 @@
 import {
-  AfterViewInit, ChangeDetectionStrategy,
+  AfterViewInit,
+  ChangeDetectionStrategy,
   Component,
   effect,
   ElementRef,
   inject,
-  Injector, OnDestroy,
+  Injector,
   output,
   signal,
   viewChild
@@ -15,7 +16,7 @@ import { Feature, FeatureCollection } from "geojson";
 import { Constituency, ConstituencyResult } from "../../models/models";
 import { ColorScaleService } from "../../services/color-scale.service";
 import { NgClass } from "@angular/common";
-import { ResizeObserverService } from "../../../shared/services/resize-observer.service";
+import { ResizeDirective } from "../../../shared/directives/resize.directive";
 
 @Component({
   selector: 'app-constituencies-map',
@@ -25,9 +26,10 @@ import { ResizeObserverService } from "../../../shared/services/resize-observer.
   ],
   templateUrl: './constituencies-map.component.html',
   styleUrl: './constituencies-map.component.scss',
+  hostDirectives: [ResizeDirective],
   changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class ConstituenciesMapComponent implements AfterViewInit, OnDestroy {
+export class ConstituenciesMapComponent implements AfterViewInit {
   constituencyClick = output<Constituency>();
 
   private electionDataStore = inject(ElectionDataStore);
@@ -39,19 +41,13 @@ export class ConstituenciesMapComponent implements AfterViewInit, OnDestroy {
   private colorScheme = this.colorService.partyColorScale();
   private islands = ['U06', 'U01'];
   private tooltip = viewChild.required<ElementRef>('tooltip');
-  private hostElement = inject(ElementRef);
-  private resizeObserverService = inject(ResizeObserverService);
-  private resize = this.resizeObserverService.observeResize(this.hostElement);
+  private resize = inject(ResizeDirective).resize;
 
   hoveredConstituency = signal<ConstituencyMapItem | null>(null);
 
   ngAfterViewInit(): void {
     this.initializeSvg();
     this.drawOnDataChange();
-  }
-
-  ngOnDestroy(): void {
-    this.resizeObserverService.unObserve(this.hostElement);
   }
 
   private initializeSvg(): void {
