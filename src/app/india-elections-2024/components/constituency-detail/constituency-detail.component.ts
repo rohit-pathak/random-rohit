@@ -4,7 +4,9 @@ import { TitleCasePipe } from "@angular/common";
 import { ElectionDataStore } from "../../election-data.store";
 import { DonutChartComponent } from "../../../shared/components/donut-chart/donut-chart.component";
 import { ColorScaleService } from "../../services/color-scale.service";
-import { HorizontalBarChartComponent } from "../../../shared/components/horizontal-bar-chart/horizontal-bar-chart.component";
+import {
+  HorizontalBarChartComponent
+} from "../../../shared/components/horizontal-bar-chart/horizontal-bar-chart.component";
 
 @Component({
   selector: 'app-constituency-detail',

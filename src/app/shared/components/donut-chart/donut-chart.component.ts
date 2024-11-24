@@ -83,7 +83,8 @@ export class DonutChartComponent<T> implements AfterViewInit {
   private highlightInputDatum(): void {
     effect(() => {
       const highlightDatum = this.highlight();
-      if (!this.data() || !this.data().length || !highlightDatum) {
+      if (!highlightDatum) {
+        this.unhighlightSectors();
         return;
       }
       this.highlightSector(highlightDatum);
@@ -116,8 +117,7 @@ export class DonutChartComponent<T> implements AfterViewInit {
   }
 
   private onSectorMouseout(): void {
-    this.arcGroup.selectAll('path')
-      .attr('opacity', 1);
+    this.unhighlightSectors();
     this.selectedDatum.set(null);
     this.tooltipEvent.set(null);
     this.sectorMouseout.emit();
@@ -126,5 +126,9 @@ export class DonutChartComponent<T> implements AfterViewInit {
   private highlightSector(datum: T): void {
     this.arcGroup.selectAll<SVGPathElement, PieArcDatum<T>>('path')
       .attr('opacity', d => this.labelFn()(d.data) === this.labelFn()(datum) ? 1 : 0.4);
+  }
+
+  private unhighlightSectors(): void {
+    this.arcGroup.selectAll('path').attr('opacity', 1);
   }
 }
