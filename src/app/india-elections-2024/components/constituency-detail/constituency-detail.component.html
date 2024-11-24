@@ -8,10 +8,10 @@
                      (sectorMouseout)="onPctSectorMouseout()"
     />
     <div class="vote-pct-detail">
-      @if (hoveredResult()) {
-        <small>{{ hoveredResult()?.partyName }}</small>
-        <div><b>Candidate:</b> {{ hoveredResult()?.candidateName | titlecase }}</div>
-        <div><b>Votes:</b> {{ hoveredResult()?.totalVotes }} ({{hoveredResult()?.percentageOfVotes}}&percnt;)</div>
+      @if (candidateDetail()) {
+        <small class="party-name">{{ candidateDetail()?.partyName }}</small>
+        <div> {{ candidateDetail()?.candidateName | titlecase }}</div>
+        <div>Votes: {{ candidateDetail()?.totalVotes || 0 | number }} ({{candidateDetail()?.percentageOfVotes || 0}}&percnt;)</div>
       }
     </div>
   </div>
