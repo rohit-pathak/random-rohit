@@ -14,6 +14,7 @@ import {
 import { arc, pie, PieArcDatum, select, Selection } from "d3";
 import { TooltipComponent } from "../tooltip/tooltip.component";
 import { CommonModule } from "@angular/common";
+import { ResizeDirective } from "../../directives/resize.directive";
 
 @Component({
   selector: 'app-donut-chart',
@@ -24,7 +25,8 @@ import { CommonModule } from "@angular/common";
   ],
   templateUrl: './donut-chart.component.html',
   styleUrl: './donut-chart.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  hostDirectives: [ResizeDirective],
 })
 export class DonutChartComponent<T> implements AfterViewInit {
   data = input.required<T[]>();
@@ -37,10 +39,11 @@ export class DonutChartComponent<T> implements AfterViewInit {
   sectorMouseover = output<T>();
   sectorMouseout = output<void>();
 
-  private svg!: Selection<SVGSVGElement, unknown, HTMLElement, unknown>;
+  private resize = inject(ResizeDirective).resize;
   private arcGroup!: Selection<SVGGElement, unknown, HTMLElement, unknown>;
-  private width = 100; // TODO: update dynamically on resize
+  private width = computed(() => this.resize().width ?? 100);
   private svgRef = viewChild.required<ElementRef>('chart');
+  private svg = computed(() => select<SVGSVGElement, unknown>(this.svgRef().nativeElement));
   private injector = inject(Injector);
 
   host = inject(ElementRef<HTMLElement>);
@@ -55,24 +58,26 @@ export class DonutChartComponent<T> implements AfterViewInit {
   });
 
   ngAfterViewInit(): void {
-    this.svg = select<SVGSVGElement, unknown>(this.svgRef().nativeElement)
-      .attr('width', `${this.width}px`)
-      .attr('height', `${this.width}px`);
-    this.arcGroup = this.svg.append('g')
-      .attr('class', 'arc-group')
-      .attr('transform', `translate(${this.width / 2},${this.width / 2})`);
+    this.arcGroup = this.svg().append('g').attr('class', 'arc-group');
     this.initializeDrawing();
     this.highlightInputDatum();
   }
 
   private initializeDrawing(): void {
     effect(() => {
-      if (!this.data() || !this.data().length) {
+      if (!this.data() || !this.data().length || !this.width()) {
         return;
       }
-      // TODO: update svg on resize
+      this.resizeSVG();
       this.drawChart();
     }, {injector: this.injector});
+  }
+
+  private resizeSVG(): void {
+    this.svg()
+      .attr('width', `${this.width()}px`)
+      .attr('height', `${this.width()}px`);
+    this.arcGroup.attr('transform', `translate(${this.width() / 2},${this.width() / 2})`);
   }
 
   private highlightInputDatum(): void {
@@ -90,8 +95,8 @@ export class DonutChartComponent<T> implements AfterViewInit {
       .value(d => this.valueFn()(d));
     const pieData = pieGenerator(this.data());
     const arcGenerator = arc<typeof pieData[number]>()
-      .innerRadius(this.width / 2 - 20)
-      .outerRadius(this.width / 2);
+      .innerRadius(this.width() / 2 - 20)
+      .outerRadius(this.width() / 2);
     this.arcGroup
       .selectAll<SVGPathElement, PieArcDatum<T>>('path')
       .data(pieData, d => this.labelFn()(d.data))

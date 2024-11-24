@@ -1,11 +1,19 @@
 :host {
   width: 100%;
+
   .vote-pct {
     display: flex;
     gap: 1rem;
 
-    .vote-pct-detail {
-      flex: 1;
+    app-donut-chart {
+      flex: 1 1 25%;
+      min-width: 0;
     }
+
+    .vote-pct-detail {
+      flex: 1 1 75%;
+      min-width: 0;
+    }
+
   }
 }

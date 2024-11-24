@@ -3,13 +3,18 @@
   gap: 1rem;
 
   .result-overview {
-    flex: 1 1 60%; /* 70% width */
+    flex: 1 1 60%; /* 60% width */
     min-width: 0;
 
     .total-stats {
       display: flex;
       gap: 1rem;
       justify-items: center;
+
+      app-total-seats, app-total-vote-share {
+        flex: 1 1 50%;
+        min-width: 0;
+      }
     }
   }
 
