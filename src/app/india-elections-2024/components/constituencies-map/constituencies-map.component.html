@@ -1,4 +1,4 @@
-<div class="map-container"></div>
+<svg #chart></svg>
 <div #tooltip class="viz-tooltip" [ngClass]="{'hidden': hoveredConstituency() === null}">
   <div><strong>{{hoveredConstituency()?.constituency?.name}}</strong></div>
   <div>{{hoveredConstituency()?.results?.[0]?.partyName}}</div>

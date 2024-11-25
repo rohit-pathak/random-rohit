@@ -1,0 +1,22 @@
+section.map {
+  display: flex;
+  gap: 1rem;
+
+  app-constituency-map {
+    flex: 1 1 60%; /* 60% width */
+    min-width: 0;
+  }
+
+  .total-stats {
+    flex: 1 1 40%;
+    min-width: 0;
+
+    & > * {
+      max-width: 150px;
+    }
+  }
+}
+
+section.constituency-detail {
+
+}

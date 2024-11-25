@@ -1,2 +1,11 @@
 <h4>2024 Indian Parliamentary Election Results</h4>
-<app-overall-result />
+<section class="map">
+  <app-constituencies-map (constituencyClick)="onConstituencyClick($event)"/>
+  <div class="total-stats">
+    <app-total-seats />
+    <app-total-vote-share />
+  </div>
+</section>
+<section class="constituency-detail">
+  <app-constituency-detail [constituency]="selectedConstituency()"/>
+</section>

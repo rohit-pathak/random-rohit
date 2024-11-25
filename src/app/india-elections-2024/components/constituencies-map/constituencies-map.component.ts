@@ -1,7 +1,7 @@
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
-  Component,
+  Component, computed,
   effect,
   ElementRef,
   inject,
@@ -35,7 +35,8 @@ export class ConstituenciesMapComponent implements AfterViewInit {
   private electionDataStore = inject(ElectionDataStore);
   private colorService = inject(ColorScaleService);
   private injector = inject(Injector);
-  private mapSvg!: Selection<SVGSVGElement, unknown, HTMLElement, unknown>;
+  private svgRef = viewChild.required<ElementRef>('chart');
+  private mapSvg = computed(() => select<SVGSVGElement, unknown>(this.svgRef().nativeElement));
   private constituenciesGroup!: Selection<SVGGElement, unknown, HTMLElement, unknown>;
   private projection = geoMercator();
   private colorScheme = this.colorService.partyColorScale();
@@ -51,12 +52,11 @@ export class ConstituenciesMapComponent implements AfterViewInit {
   }
 
   private initializeSvg(): void {
-    this.mapSvg = select('.overall-result-viz-container .map-container')
-      .append('svg')
+    this.mapSvg()
       .attr('width', this.resize().width ?? 10)
       .attr('height', this.resize().width ?? 10); // make height equal to width
     this.addBlankHoverableArea();
-    this.constituenciesGroup = this.mapSvg.append('g').attr('class', 'constituencies');
+    this.constituenciesGroup = this.mapSvg().append('g').attr('class', 'constituencies');
   }
 
   private drawOnDataChange(): void {
@@ -67,7 +67,7 @@ export class ConstituenciesMapComponent implements AfterViewInit {
       if (!mapGeoJson || !constituencies || !resize) {
         return;
       }
-      this.mapSvg
+      this.mapSvg()
         .attr('width', resize.width)
         .attr('height', resize.width)
         .select('.hoverable-area')
@@ -154,10 +154,10 @@ export class ConstituenciesMapComponent implements AfterViewInit {
    * @private
    */
   private addBlankHoverableArea() {
-    if (!this.mapSvg.select('.hoverable-area').empty()) {
+    if (!this.mapSvg().select('.hoverable-area').empty()) {
       return;
     }
-    this.mapSvg.append<SVGRectElement>('rect')
+    this.mapSvg().append<SVGRectElement>('rect')
       .attr('class', 'hoverable-area')
       .attr('width', this.resize().width)
       .attr('height', this.resize().width)
