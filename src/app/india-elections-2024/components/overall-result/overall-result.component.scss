@@ -14,6 +14,7 @@
       app-total-seats, app-total-vote-share {
         flex: 1 1 50%;
         min-width: 0;
+        max-width: 120px;
       }
     }
   }

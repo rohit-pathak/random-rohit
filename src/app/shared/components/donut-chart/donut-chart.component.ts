@@ -35,6 +35,7 @@ export class DonutChartComponent<T> implements AfterViewInit {
   colorFn = input.required<(d: T) => string>();
   highlight = input<T | null>();
   showTooltip = input(true);
+  title = input<string | null>(null);
 
   sectorMouseover = output<T>();
   sectorMouseout = output<void>();
@@ -96,7 +97,7 @@ export class DonutChartComponent<T> implements AfterViewInit {
       .value(d => this.valueFn()(d));
     const pieData = pieGenerator(this.data());
     const arcGenerator = arc<typeof pieData[number]>()
-      .innerRadius(this.width() / 2 - 20)
+      .innerRadius(this.width() / 2 - 15)
       .outerRadius(this.width() / 2);
     this.arcGroup
       .selectAll<SVGPathElement, PieArcDatum<T>>('path')
