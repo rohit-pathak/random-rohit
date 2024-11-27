@@ -1,4 +1,4 @@
-import { Component, computed, inject, output } from '@angular/core';
+import { Component, computed, inject, output, signal } from '@angular/core';
 import { ElectionDataStore } from "../../election-data.store";
 import { ColorScaleService } from "../../services/color-scale.service";
 import { DonutChartComponent } from "../../../shared/components/donut-chart/donut-chart.component";
@@ -52,12 +52,14 @@ export class TotalStatsComponent {
     return Object.keys(this.electionDataStore.totalVotesByParty())
       .filter(p => !(p in this.colorService.partyColorMap));
   });
+  highlightParty = signal<string | null>(null);
   seatsValueFn = (d: PartySeatCount) => d.totalSeats;
   votePctFn = (d: PartyVoteShare) => d.votePct;
   labelFn = (d: PartySeatCount | PartyVoteShare) => d.party;
   colorFn = (d: PartySeatCount | PartyVoteShare) => this.colorService.partyColorScale()(d.party);
 
   onSectorMouseover(hoveredParty: PartySeatCount | PartyVoteShare): void {
+    this.highlightParty.set(hoveredParty.party);
     if (hoveredParty.party in this.colorService.partyColorMap) {
       this.partyHover.emit([hoveredParty.party]);
       return;
@@ -67,6 +69,7 @@ export class TotalStatsComponent {
 
   onSectorMouseout(): void {
     this.partyHover.emit(null);
+    this.highlightParty.set(null);
   }
 }
 

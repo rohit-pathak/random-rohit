@@ -33,7 +33,7 @@ export class DonutChartComponent<T> implements AfterViewInit {
   valueFn = input.required<(d: T) => number>();
   labelFn = input.required<(d: T) => string>();
   colorFn = input.required<(d: T) => string>();
-  highlight = input<T | null>(); // TODO: accept a list of strings (labels) instead of T
+  highlight = input<string | null>();
   showTooltip = input(true);
   title = input<string | null>(null);
 
@@ -61,7 +61,7 @@ export class DonutChartComponent<T> implements AfterViewInit {
   ngAfterViewInit(): void {
     this.arcGroup = this.svg().append('g').attr('class', 'arc-group');
     this.initializeDrawing();
-    this.highlightInputDatum();
+    this.highlightLabel();
   }
 
   private initializeDrawing(): void {
@@ -81,14 +81,14 @@ export class DonutChartComponent<T> implements AfterViewInit {
     this.arcGroup.attr('transform', `translate(${this.width() / 2},${this.width() / 2})`);
   }
 
-  private highlightInputDatum(): void {
+  private highlightLabel(): void {
     effect(() => {
-      const highlightDatum = this.highlight();
-      if (!highlightDatum) {
+      const label = this.highlight();
+      if (!label) {
         this.unhighlightSectors();
         return;
       }
-      this.highlightSector(highlightDatum);
+      this.highlightSector(label);
     }, {injector: this.injector});
   }
 
@@ -112,7 +112,7 @@ export class DonutChartComponent<T> implements AfterViewInit {
   }
 
   private onSectorMouseover(pieDatum: PieArcDatum<T>): void {
-    this.highlightSector(pieDatum.data);
+    this.highlightSector(this.labelFn()(pieDatum.data));
     this.selectedDatum.set(pieDatum.data);
     this.sectorMouseover.emit(pieDatum.data);
   }
@@ -124,9 +124,9 @@ export class DonutChartComponent<T> implements AfterViewInit {
     this.sectorMouseout.emit();
   }
 
-  private highlightSector(datum: T): void {
+  private highlightSector(label: string): void {
     this.arcGroup.selectAll<SVGPathElement, PieArcDatum<T>>('path')
-      .attr('opacity', d => this.labelFn()(d.data) === this.labelFn()(datum) ? 1 : 0.4);
+      .attr('opacity', d => this.labelFn()(d.data) === label ? 1 : 0.2);
   }
 
   private unhighlightSectors(): void {

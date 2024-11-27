@@ -1,8 +1,8 @@
 <div class="charts">
   <app-donut-chart (sectorMouseover)="onSectorMouseover($event)" (sectorMouseout)="onSectorMouseout()"
                    [data]="seatsData()" [valueFn]="seatsValueFn" [labelFn]="labelFn" [colorFn]="colorFn"
-                   title="Total seats won"/>
+                   [highlight]="highlightParty()" title="Total seats won"/>
   <app-donut-chart (sectorMouseover)="onSectorMouseover($event)" (sectorMouseout)="onSectorMouseout()"
                    [data]="votePctData()" [valueFn]="votePctFn" [labelFn]="labelFn" [colorFn]="colorFn"
-                   title="Total vote share" />
+                   [highlight]="highlightParty()" title="Total vote share" />
 </div>

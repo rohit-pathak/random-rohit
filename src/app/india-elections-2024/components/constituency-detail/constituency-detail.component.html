@@ -3,7 +3,7 @@
   <h6>{{ constituencyDetail()?.constituency?.name | titlecase }}</h6>
   <div class="vote-pct">
     <app-donut-chart [data]="constituencyDetail()?.results || []" [valueFn]="pctDonutValueFn()"
-                     [labelFn]="pctDonutLabelFn()" [colorFn]="colorFn()" [highlight]="hoveredResult()"
+                     [labelFn]="pctDonutLabelFn()" [colorFn]="colorFn()" [highlight]="hoveredResult()?.partyName"
                      [showTooltip]="false" (sectorMouseover)="onPctSectorHover($event)"
                      (sectorMouseout)="onPctSectorMouseout()"
     />
