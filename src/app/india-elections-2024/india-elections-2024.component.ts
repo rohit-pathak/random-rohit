@@ -24,14 +24,17 @@ export class IndiaElections2024Component implements OnInit {
   private electionDataStore = inject(ElectionDataStore);
 
   selectedConstituency = signal<Constituency | null>(null);
-  hoveredParty = signal<string | null>(null);
+  hoveredParties = signal<string[] | null>(null);
   highlightConstituencies = computed(() => {
-    const party = this.hoveredParty();
-    if (!party) {
+    const parties = this.hoveredParties();
+    if (!parties) {
       return null;
     }
-    return this.electionDataStore.constituenciesWonByParty()[party];
-  })
+    return parties
+      .filter(p => p in this.electionDataStore.constituenciesWonByParty())
+      .flatMap(p => this.electionDataStore.constituenciesWonByParty()[p]);
+  });
+
 
   ngOnInit(): void {
     this.electionDataStore.loadAllData();
@@ -41,8 +44,8 @@ export class IndiaElections2024Component implements OnInit {
     this.selectedConstituency.set(constituency);
   }
 
-  onPartyHover(party: string | null): void {
-    this.hoveredParty.set(party);
+  onPartyHover(parties: string[] | null): void {
+    this.hoveredParties.set(parties);
   }
 
 }

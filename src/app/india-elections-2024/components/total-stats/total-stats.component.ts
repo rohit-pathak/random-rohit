@@ -13,7 +13,7 @@ import { DonutChartComponent } from "../../../shared/components/donut-chart/donu
   styleUrl: './total-stats.component.scss'
 })
 export class TotalStatsComponent {
-  partyHover = output<string | null>();
+  partyHover = output<string[] | null>();
 
   private electionDataStore = inject(ElectionDataStore);
   private colorService = inject(ColorScaleService);
@@ -48,13 +48,21 @@ export class TotalStatsComponent {
       }
     })
   });
+  otherParties = computed(() => {
+    return Object.keys(this.electionDataStore.totalVotesByParty())
+      .filter(p => !(p in this.colorService.partyColorMap));
+  });
   seatsValueFn = (d: PartySeatCount) => d.totalSeats;
   votePctFn = (d: PartyVoteShare) => d.votePct;
   labelFn = (d: PartySeatCount | PartyVoteShare) => d.party;
   colorFn = (d: PartySeatCount | PartyVoteShare) => this.colorService.partyColorScale()(d.party);
 
   onSectorMouseover(hoveredParty: PartySeatCount | PartyVoteShare): void {
-    this.partyHover.emit(hoveredParty.party);
+    if (hoveredParty.party in this.colorService.partyColorMap) {
+      this.partyHover.emit([hoveredParty.party]);
+      return;
+    }
+    this.partyHover.emit(this.otherParties());
   }
 
   onSectorMouseout(): void {
