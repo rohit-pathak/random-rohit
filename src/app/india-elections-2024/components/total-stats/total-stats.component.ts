@@ -18,15 +18,30 @@ export class TotalStatsComponent {
   private electionDataStore = inject(ElectionDataStore);
   private colorService = inject(ColorScaleService);
   seatsData = computed<PartySeatCount[]>(() => {
-    const seatsByParty = this.electionDataStore.totalSeatsByParty();
-    return Object.entries(seatsByParty).map(([party, totalSeats]) => {
-      return {party, totalSeats };
-    });
+    const simplifiedSeatsByParty = Object.entries(this.electionDataStore.totalSeatsByParty())
+      .reduce((acc, [party, totalSeats]) => {
+        if (party in this.colorService.partyColorMap) {
+          acc[party] = { party, totalSeats };
+        } else {
+          acc['Others'] = acc['Others'] || { party: 'Others', totalSeats: 0};
+          acc['Others'].totalSeats += totalSeats;
+        }
+        return acc;
+      }, {} as Record<string, PartySeatCount>);
+    return Object.values(simplifiedSeatsByParty);
   });
   votePctData = computed<PartyVoteShare[]>(() => {
-    const votesByParty = this.electionDataStore.totalVotesByParty();
-    const totalVotes = Object.values(votesByParty).reduce((acc, curr) => acc + curr, 0);
-    return Object.entries(votesByParty).map(([party, votes]) => {
+    const simplifiedVotesByParty = Object.entries(this.electionDataStore.totalVotesByParty())
+      .reduce((acc, [party, votes]) => {
+        if (party in this.colorService.partyColorMap) {
+          acc[party] = votes;
+        } else {
+          acc['Others'] = (acc['Others'] || 0) + votes;
+        }
+        return acc;
+      }, {} as Record<string, number>);
+    const totalVotes = Object.values(simplifiedVotesByParty).reduce((acc, curr) => acc + curr, 0);
+    return Object.entries(simplifiedVotesByParty).map(([party, votes]) => {
       return {
         party,
         votePct: (votes / totalVotes) * 100
