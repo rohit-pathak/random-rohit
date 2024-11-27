@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ElectionDataService } from "./services/election-data.service";
 import { ElectionDataStore } from "./election-data.store";
 import { ColorScaleService } from "./services/color-scale.service";
@@ -26,6 +26,14 @@ export class IndiaElections2024Component implements OnInit {
   private electionDataStore = inject(ElectionDataStore);
 
   selectedConstituency = signal<Constituency | null>(null);
+  hoveredParty = signal<string | null>(null);
+  highlightConstituencies = computed(() => {
+    const party = this.hoveredParty();
+    if (!party) {
+      return null;
+    }
+    return this.electionDataStore.constituenciesWonByParty()[party];
+  })
 
   ngOnInit(): void {
     this.electionDataStore.loadAllData();
@@ -33,6 +41,10 @@ export class IndiaElections2024Component implements OnInit {
 
   onConstituencyClick(constituency: Constituency): void {
     this.selectedConstituency.set(constituency);
+  }
+
+  onPartyHover(party: string | null): void {
+    this.hoveredParty.set(party);
   }
 
 }

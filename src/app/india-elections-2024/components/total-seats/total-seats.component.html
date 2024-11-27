@@ -1,1 +1,3 @@
-<app-donut-chart [data]="seatsData()" [valueFn]="valueFn" [labelFn]="labelFn" [colorFn]="colorFn" title="Total seats won" />
+<app-donut-chart (sectorMouseover)="onSectorMouseover($event)" (sectorMouseout)="onSectorMouseout()"
+                 [data]="seatsData()" [valueFn]="valueFn" [labelFn]="labelFn" [colorFn]="colorFn"
+                 title="Total seats won"/>

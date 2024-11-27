@@ -60,7 +60,7 @@ export const ElectionDataStore = signalStore(
           acc[curr.partyName] = (acc[curr.partyName] || 0) + curr.totalVotes;
           return acc;
         }, {} as Record<string, number>);
-      })
+      }),
     }
   }),
   withComputed((state) => {
@@ -72,6 +72,19 @@ export const ElectionDataStore = signalStore(
           return acc;
         }, {} as Record<string, number>);
       }),
+      constituenciesWonByParty: computed(() => {
+        return Object.values(state.resultsByConstituency()).reduce((acc, curr) => {
+          const winningParty = curr[0]?.partyName ?? '';
+          if (!acc[winningParty]) {
+            acc[winningParty] = [];
+          }
+          const constituency = state.constituenciesById()[curr[0]?.constituencyId];
+          if (constituency) {
+            acc[winningParty].push(constituency);
+          }
+          return acc;
+        }, {} as Record<string, Constituency[]>)
+      })
     }
   }),
   withMethods((store, electionDataService = inject(ElectionDataService)) => {

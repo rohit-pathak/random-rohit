@@ -5,7 +5,7 @@ import {
   effect,
   ElementRef,
   inject,
-  Injector,
+  Injector, input,
   output,
   signal,
   viewChild
@@ -30,6 +30,7 @@ import { ResizeDirective } from "../../../shared/directives/resize.directive";
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ConstituenciesMapComponent implements AfterViewInit {
+  highlight = input<Constituency[] | null>(null);
   constituencyClick = output<Constituency>();
 
   private electionDataStore = inject(ElectionDataStore);
@@ -49,6 +50,7 @@ export class ConstituenciesMapComponent implements AfterViewInit {
   ngAfterViewInit(): void {
     this.initializeSvg();
     this.drawOnDataChange();
+    this.highlightInputConstituencies();
   }
 
   private initializeSvg(): void {
@@ -107,6 +109,19 @@ export class ConstituenciesMapComponent implements AfterViewInit {
       });
   }
 
+  private highlightInputConstituencies(): void {
+    effect(() => {
+      const constituenciesToHighlight = this.highlight();
+      if (!constituenciesToHighlight) {
+        this.constituenciesGroup.selectAll('path').attr('opacity', 1);
+        return
+      }
+      const idsToHighlight = new Set(constituenciesToHighlight.map(c => c.id));
+      this.constituenciesGroup.selectAll<SVGPathElement, ConstituencyMapItem>('path')
+        .attr('opacity', d => idsToHighlight.has(d.constituency?.id) ? 1 : 0.2)
+    }, {injector: this.injector });
+  }
+
   private onConstituencyClick(c: ConstituencyMapItem): void {
     this.constituencyClick.emit(c.constituency);
   }
@@ -119,7 +134,7 @@ export class ConstituenciesMapComponent implements AfterViewInit {
     // highlight all constituencies of the same state
     if (hoveredItem.constituency.stateOrUT !== this.hoveredConstituency()?.constituency.stateOrUT) {
       this.constituenciesGroup.selectAll<SVGPathElement, ConstituencyMapItem>('path')
-        .style('opacity', d => d.constituency?.stateOrUT === hoveredItem.constituency?.stateOrUT ? 1 : 0.4);
+        .style('opacity', d => d.constituency?.stateOrUT === hoveredItem.constituency?.stateOrUT ? 1 : 0.2);
     }
     this.hoveredConstituency.set(hoveredItem);
   }

@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, computed, inject, output } from '@angular/core';
 import { DonutChartComponent } from "../../../shared/components/donut-chart/donut-chart.component";
 import { ElectionDataStore } from "../../election-data.store";
 import { ColorScaleService } from "../../services/color-scale.service";
@@ -13,6 +13,8 @@ import { ColorScaleService } from "../../services/color-scale.service";
   styleUrl: './total-vote-share.component.scss'
 })
 export class TotalVoteShareComponent {
+  partyHover = output<string | null>();
+
   private electionDataStore = inject(ElectionDataStore);
   private colorService = inject(ColorScaleService);
 
@@ -29,6 +31,14 @@ export class TotalVoteShareComponent {
   valueFn = (d: PartyVoteShare) => d.votePct;
   labelFn = (d: PartyVoteShare) => d.party;
   colorFn = (d: PartyVoteShare) => this.colorService.partyColorScale()(d.party);
+
+  onSectorMouseover(hoveredParty: PartyVoteShare): void {
+    this.partyHover.emit(hoveredParty.party);
+  }
+
+  onSectorMouseout(): void {
+    this.partyHover.emit(null);
+  }
 }
 
 interface PartyVoteShare {

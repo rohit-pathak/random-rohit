@@ -1,1 +1,3 @@
-<app-donut-chart [data]="votePctData()" [valueFn]="valueFn" [labelFn]="labelFn" [colorFn]="colorFn" title="Total vote share" />
+<app-donut-chart (sectorMouseover)="onSectorMouseover($event)" (sectorMouseout)="onSectorMouseout()"
+                 [data]="votePctData()" [valueFn]="valueFn" [labelFn]="labelFn" [colorFn]="colorFn"
+                 title="Total vote share" />
