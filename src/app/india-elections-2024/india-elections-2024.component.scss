@@ -7,13 +7,9 @@ section.map {
     min-width: 0;
   }
 
-  .total-stats {
+  app-total-stats {
     flex: 1 1 40%;
     min-width: 0;
-
-    & > * {
-      max-width: 150px;
-    }
   }
 }
 

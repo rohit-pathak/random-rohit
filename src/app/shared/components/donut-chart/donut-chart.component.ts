@@ -33,7 +33,7 @@ export class DonutChartComponent<T> implements AfterViewInit {
   valueFn = input.required<(d: T) => number>();
   labelFn = input.required<(d: T) => string>();
   colorFn = input.required<(d: T) => string>();
-  highlight = input<T | null>();
+  highlight = input<T | null>(); // TODO: accept a list of strings (labels) instead of T
   showTooltip = input(true);
   title = input<string | null>(null);
 

@@ -3,19 +3,17 @@ import { ElectionDataService } from "./services/election-data.service";
 import { ElectionDataStore } from "./election-data.store";
 import { ColorScaleService } from "./services/color-scale.service";
 import { ConstituenciesMapComponent } from "./components/constituencies-map/constituencies-map.component";
-import { TotalSeatsComponent } from "./components/total-seats/total-seats.component";
-import { TotalVoteShareComponent } from "./components/total-vote-share/total-vote-share.component";
 import { ConstituencyDetailComponent } from "./components/constituency-detail/constituency-detail.component";
 import { Constituency } from "./models/models";
+import { TotalStatsComponent } from "./components/total-stats/total-stats.component";
 
 @Component({
   selector: 'app-india-elections-2024',
   standalone: true,
   imports: [
     ConstituenciesMapComponent,
-    TotalSeatsComponent,
-    TotalVoteShareComponent,
-    ConstituencyDetailComponent
+    ConstituencyDetailComponent,
+    TotalStatsComponent
   ],
   providers: [ElectionDataService, ElectionDataStore, ColorScaleService],
   templateUrl: './india-elections-2024.component.html',
