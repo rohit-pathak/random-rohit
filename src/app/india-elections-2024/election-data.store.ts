@@ -108,7 +108,7 @@ export const ElectionDataStore = signalStore(
                 },
                 (error) => {
                   console.error(error);
-                  patchState(store, {isLoading: false, error: 'Failed to load data'})
+                  patchState(store, { isLoading: false, error: 'Failed to load data' })
                 }
               )
             )

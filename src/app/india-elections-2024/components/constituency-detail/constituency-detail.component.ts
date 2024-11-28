@@ -9,16 +9,16 @@ import {
 } from "../../../shared/components/horizontal-bar-chart/horizontal-bar-chart.component";
 
 @Component({
-    selector: 'app-constituency-detail',
-    imports: [
-        TitleCasePipe,
-        DonutChartComponent,
-        HorizontalBarChartComponent,
-        DecimalPipe
-    ],
-    templateUrl: './constituency-detail.component.html',
-    styleUrl: './constituency-detail.component.scss',
-    changeDetection: ChangeDetectionStrategy.OnPush
+  selector: 'app-constituency-detail',
+  imports: [
+    TitleCasePipe,
+    DonutChartComponent,
+    HorizontalBarChartComponent,
+    DecimalPipe
+  ],
+  templateUrl: './constituency-detail.component.html',
+  styleUrl: './constituency-detail.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ConstituencyDetailComponent {
   constituency = input.required<Constituency | null>();

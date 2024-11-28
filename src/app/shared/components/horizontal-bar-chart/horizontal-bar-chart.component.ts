@@ -28,12 +28,12 @@ import { CommonModule } from "@angular/common";
 import { ResizeDirective } from "../../directives/resize.directive";
 
 @Component({
-    selector: 'app-horizontal-bar-chart',
-    imports: [CommonModule],
-    templateUrl: './horizontal-bar-chart.component.html',
-    styleUrl: './horizontal-bar-chart.component.scss',
-    changeDetection: ChangeDetectionStrategy.OnPush,
-    hostDirectives: [ResizeDirective]
+  selector: 'app-horizontal-bar-chart',
+  imports: [CommonModule],
+  templateUrl: './horizontal-bar-chart.component.html',
+  styleUrl: './horizontal-bar-chart.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  hostDirectives: [ResizeDirective]
 })
 export class HorizontalBarChartComponent<T> implements AfterViewInit {
   data = input.required<T[]>();
@@ -46,7 +46,7 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
   barMouseover = output<T>();
   barMouseout = output<void>();
 
-  hoveredDatum = signal<{label: string, value: string} | null>(null);
+  hoveredDatum = signal<{ label: string, value: string } | null>(null);
 
   // domainData transformation helps d3 figure out values for the scale and axis
   private domainData = computed<DomainDatum<T>[]>(() => {
@@ -58,7 +58,7 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
   private yAxisGroup!: Selection<SVGGElement, unknown, HTMLElement, unknown>;
   private barHeight = 15;
   private barPadding = 1;
-  private margin = {top: 10, bottom: 30, left: 100, right: 10};
+  private margin = { top: 10, bottom: 30, left: 100, right: 10 };
   private xScale!: ScaleLinear<number, number, number>;
   private yScale!: ScaleOrdinal<DomainDatum<T>, number>;
 
@@ -96,7 +96,7 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
       this.drawAxes();
       this.handleHover();
       this.setSVGHeight();
-    }, {injector: this.injector, allowSignalWrites: true});
+    }, { injector: this.injector, allowSignalWrites: true });
   }
 
   private highlightInputDatum(): void {
@@ -107,7 +107,7 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
         return;
       }
       this.highlightElementsForDatum(highlightDatum);
-    }, {injector: this.injector});
+    }, { injector: this.injector });
   }
 
   private shiftChartForLeftMargin(): void {
@@ -210,7 +210,7 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
       .attr('transform', 'translate(-50, -50)')
       .attr('visibility', 'hidden');
     this.yAxisGroup.selectAll<SVGTextElement, DomainDatum<T>>('.tick text')
-      .text(function(d) {
+      .text(function (d) {
         const originalText = d.toString();
         let truncatedText = d.toString();
         tempTextBox.text(truncatedText);

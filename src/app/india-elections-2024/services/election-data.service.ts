@@ -17,7 +17,7 @@ export class ElectionDataService {
   public getConstituencies(): Observable<Constituency[]> {
     return this.http.get('/data/constituencies.csv', { responseType: "text" }).pipe(
       map((rawData) => {
-        return csvParse<keyof Constituency>(rawData).map(d => {
+          return csvParse<keyof Constituency>(rawData).map(d => {
             const result: Constituency = {
               id: d.id,
               name: d.name,

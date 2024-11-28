@@ -4,12 +4,12 @@ import { ColorScaleService } from "../../services/color-scale.service";
 import { DonutChartComponent } from "../../../shared/components/donut-chart/donut-chart.component";
 
 @Component({
-    selector: 'app-total-stats',
-    imports: [
-        DonutChartComponent
-    ],
-    templateUrl: './total-stats.component.html',
-    styleUrl: './total-stats.component.scss'
+  selector: 'app-total-stats',
+  imports: [
+    DonutChartComponent
+  ],
+  templateUrl: './total-stats.component.html',
+  styleUrl: './total-stats.component.scss'
 })
 export class TotalStatsComponent {
   partyHover = output<string[] | null>();
@@ -22,7 +22,7 @@ export class TotalStatsComponent {
         if (party in this.colorService.partyColorMap) {
           acc[party] = { party, totalSeats };
         } else {
-          acc['Others'] = acc['Others'] || { party: 'Others', totalSeats: 0};
+          acc['Others'] = acc['Others'] || { party: 'Others', totalSeats: 0 };
           acc['Others'].totalSeats += totalSeats;
         }
         return acc;

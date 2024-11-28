@@ -2,11 +2,11 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
 import { pointer } from "d3";
 
 @Component({
-    selector: 'app-tooltip',
+  selector: 'app-tooltip',
   imports: [],
-    templateUrl: './tooltip.component.html',
-    styleUrl: './tooltip.component.scss',
-    changeDetection: ChangeDetectionStrategy.OnPush
+  templateUrl: './tooltip.component.html',
+  styleUrl: './tooltip.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TooltipComponent {
   triggerEvent = input.required<Event | null>();

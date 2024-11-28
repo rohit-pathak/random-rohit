@@ -11,7 +11,7 @@
       @if (candidateDetail()) {
         <small class="party-name">{{ candidateDetail()?.partyName }}</small>
         <div> {{ candidateDetail()?.candidateName | titlecase }}</div>
-        <div>Votes: {{ candidateDetail()?.totalVotes || 0 | number }} ({{candidateDetail()?.percentageOfVotes || 0}}&percnt;)</div>
+        <div>Votes: {{ candidateDetail()?.totalVotes || 0 | number }} ({{ candidateDetail()?.percentageOfVotes || 0 }}&percnt;)</div>
       }
     </div>
   </div>
