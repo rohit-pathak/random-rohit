@@ -15,6 +15,7 @@ body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
   max-width: 250px;
   position: absolute;
   padding: 5px;
+  z-index: 10;
 
   &.hidden {
     visibility: hidden;

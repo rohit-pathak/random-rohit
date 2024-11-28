@@ -6,6 +6,7 @@ import { ConstituenciesMapComponent } from "./components/constituencies-map/cons
 import { ConstituencyDetailComponent } from "./components/constituency-detail/constituency-detail.component";
 import { Constituency } from "./models/models";
 import { TotalStatsComponent } from "./components/total-stats/total-stats.component";
+import { MatDivider } from "@angular/material/divider";
 
 @Component({
   selector: 'app-india-elections-2024',
@@ -13,7 +14,8 @@ import { TotalStatsComponent } from "./components/total-stats/total-stats.compon
   imports: [
     ConstituenciesMapComponent,
     ConstituencyDetailComponent,
-    TotalStatsComponent
+    TotalStatsComponent,
+    MatDivider
   ],
   providers: [ElectionDataService, ElectionDataStore, ColorScaleService],
   templateUrl: './india-elections-2024.component.html',

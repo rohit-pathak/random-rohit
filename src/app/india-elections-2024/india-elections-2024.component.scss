@@ -1,18 +1,27 @@
-section.map {
+.charts {
   display: flex;
   gap: 1rem;
 
-  app-constituency-map {
+  section.left {
     flex: 1 1 60%; /* 60% width */
     min-width: 0;
   }
 
-  app-total-stats {
+  section.right {
     flex: 1 1 40%;
     min-width: 0;
+
+    mat-divider {
+      border-color: #eee;
+      margin: 1rem 0;
+    }
   }
-}
 
-section.constituency-detail {
+  @media (max-width: 768px) {
+    flex-wrap: wrap;
 
+    section.left, section.right {
+      flex: 1 1 100%; /* On smaller screens, both take full width */
+    }
+  }
 }

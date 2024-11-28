@@ -1,5 +1,5 @@
 @if (constituencyDetail()) {
-  <div><small><i>{{ constituencyDetail()?.stateName }}</i></small></div>
+  <div><small>{{ constituencyDetail()?.stateName }}</small></div>
   <h6>{{ constituencyDetail()?.constituency?.name | titlecase }}</h6>
   <div class="vote-pct">
     <app-donut-chart [data]="constituencyDetail()?.results || []" [valueFn]="pctDonutValueFn()"
@@ -21,6 +21,5 @@
                             (barMouseout)="onBarMouseout()"
   />
 } @else {
-  <p class="text-secondary">Click on a constituency in the map to see vote percentage and detailed vote distribution for
-    candidates in that constituency.</p>
+  <p class="text-secondary">Click on a constituency in the map to see its detailed vote distribution here.</p>
 }
