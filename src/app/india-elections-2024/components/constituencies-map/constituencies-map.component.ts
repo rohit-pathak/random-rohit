@@ -1,11 +1,13 @@
 import {
   AfterViewInit,
   ChangeDetectionStrategy,
-  Component, computed,
+  Component,
+  computed,
   effect,
   ElementRef,
   inject,
-  Injector, input,
+  Injector,
+  input,
   output,
   signal,
   viewChild
@@ -15,14 +17,14 @@ import { BaseType, D3ZoomEvent, geoMercator, geoPath, select, Selection, zoom } 
 import { Feature, FeatureCollection } from "geojson";
 import { Constituency, ConstituencyResult } from "../../models/models";
 import { ColorScaleService } from "../../services/color-scale.service";
-import { NgClass } from "@angular/common";
 import { ResizeDirective } from "../../../shared/directives/resize.directive";
+import { TooltipComponent } from "../../../shared/components/tooltip/tooltip.component";
 
 @Component({
   selector: 'app-constituencies-map',
   standalone: true,
   imports: [
-    NgClass
+    TooltipComponent
   ],
   templateUrl: './constituencies-map.component.html',
   styleUrl: './constituencies-map.component.scss',
@@ -42,10 +44,11 @@ export class ConstituenciesMapComponent implements AfterViewInit {
   private projection = geoMercator();
   private colorScheme = this.colorService.partyColorScale();
   private islands = ['U06', 'U01'];
-  private tooltip = viewChild.required<ElementRef>('tooltip');
   private resize = inject(ResizeDirective).resize;
 
+  host = inject(ElementRef<HTMLElement>);
   hoveredConstituency = signal<ConstituencyMapItem | null>(null);
+  tooltipEvent = signal<Event | null>(null);
 
   ngAfterViewInit(): void {
     this.initializeSvg();
@@ -140,12 +143,11 @@ export class ConstituenciesMapComponent implements AfterViewInit {
   }
 
   private onConstituencyMousemove(event: MouseEvent): void {
-    select(this.tooltip().nativeElement)
-      .style('left', `${event.pageX + 10}px`)
-      .style('top', `${event.pageY + 20}px`);
+    this.tooltipEvent.set(event);
   }
 
   private onConstituencyMouseout(element: Selection<BaseType, ConstituencyMapItem, null, undefined>): void {
+    this.tooltipEvent.set(null);
     element
       .style('stroke-width', '0.015rem')
       .style('stroke', d => this.strokeColor(d));
