@@ -156,7 +156,7 @@ export class ConstituenciesMapComponent implements AfterViewInit {
       .scaleExtent([1, 10])
       .translateExtent([[0, 0], [this.resize().width, this.resize().height]])
       .on('zoom', (e: D3ZoomEvent<SVGSVGElement, unknown>) => this.constituenciesGroup.attr('transform', e.transform.toString()));
-    this.mapSvg.call(zoomBehavior);
+    this.mapSvg().call(zoomBehavior);
   }
 
   private strokeColor(constituencyItem: ConstituencyMapItem): string {
