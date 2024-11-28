@@ -1,7 +1,7 @@
-<h4>2024 Indian Parliamentary Election Results</h4>
+<h4 xmlns="http://www.w3.org/1999/html">2024 Indian Parliamentary Election Results</h4>
 <div class="description">
   <p>
-    This visualization shows the results of the Indian Lok Sabha election of 2024. It is best viewed on a desktop.
+    This visualization shows the results of the Indian Lok Sabha elections of 2024.
   </p>
   <p>
     The National Democratic Alliance (NDA) coalition led by the Bharatiya Janata Party (BJP) won a total of 293 seats (out of 543).
@@ -20,4 +20,12 @@
     <mat-divider/>
     <app-constituency-detail [constituency]="selectedConstituency()"/>
   </section>
+</div>
+<div>
+  <p>
+    Source: <a href="https://results.eci.gov.in/PcResultGenJune2024/index.htm" target="_blank">Election Commission of India</a>
+  </p>
+  <p>
+    The categorical color scheme used is <a href="https://d3js.org/d3-scale-chromatic/categorical#schemeSet3" target="_blank"><code>d3.schemeSet3</code></a>
+  </p>
 </div>
