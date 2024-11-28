@@ -88,8 +88,8 @@ export class ConstituenciesMapComponent implements AfterViewInit {
       .data<ConstituencyMapItem>(
         geoJson.features.map(feature => {
           const constituencyId = `${feature.properties?.['ST_CODE']}${feature.properties?.['PC_No']}`;
-          const constituency = this.electionDataStore.constituenciesById()[constituencyId];
-          const results = this.electionDataStore.resultsByConstituency()[constituencyId];
+          const constituency = this.electionDataStore.constituenciesById()[constituencyId] || {};
+          const results = this.electionDataStore.resultsByConstituency()[constituencyId] || [];
           return {feature, constituency, results };
         })
       )
