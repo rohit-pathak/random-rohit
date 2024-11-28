@@ -5,7 +5,6 @@ import { DonutChartComponent } from "../../../shared/components/donut-chart/donu
 
 @Component({
   selector: 'app-total-stats',
-  standalone: true,
   imports: [
     DonutChartComponent
   ],
@@ -23,7 +22,7 @@ export class TotalStatsComponent {
         if (party in this.colorService.partyColorMap) {
           acc[party] = { party, totalSeats };
         } else {
-          acc['Others'] = acc['Others'] || { party: 'Others', totalSeats: 0};
+          acc['Others'] = acc['Others'] || { party: 'Others', totalSeats: 0 };
           acc['Others'].totalSeats += totalSeats;
         }
         return acc;

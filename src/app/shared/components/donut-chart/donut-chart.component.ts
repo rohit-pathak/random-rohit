@@ -18,7 +18,6 @@ import { ResizeDirective } from "../../directives/resize.directive";
 
 @Component({
   selector: 'app-donut-chart',
-  standalone: true,
   imports: [
     CommonModule,
     TooltipComponent
@@ -26,7 +25,7 @@ import { ResizeDirective } from "../../directives/resize.directive";
   templateUrl: './donut-chart.component.html',
   styleUrl: './donut-chart.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  hostDirectives: [ResizeDirective],
+  hostDirectives: [ResizeDirective]
 })
 export class DonutChartComponent<T> implements AfterViewInit {
   data = input.required<T[]>();
@@ -50,7 +49,7 @@ export class DonutChartComponent<T> implements AfterViewInit {
   host = inject(ElementRef<HTMLElement>);
   tooltipEvent = signal<Event | null>(null);
   selectedDatum = signal<T | null>(null);
-  tooltipData = computed<{ title: string, value: number} | null>(() => {
+  tooltipData = computed<{ title: string, value: number } | null>(() => {
     const selectedDatum = this.selectedDatum();
     if (!selectedDatum) {
       return null;
@@ -71,7 +70,7 @@ export class DonutChartComponent<T> implements AfterViewInit {
       }
       this.resizeSVG();
       this.drawChart();
-    }, {injector: this.injector});
+    }, { injector: this.injector });
   }
 
   private resizeSVG(): void {
@@ -89,7 +88,7 @@ export class DonutChartComponent<T> implements AfterViewInit {
         return;
       }
       this.highlightSector(label);
-    }, {injector: this.injector});
+    }, { injector: this.injector });
   }
 
   private drawChart(): void {

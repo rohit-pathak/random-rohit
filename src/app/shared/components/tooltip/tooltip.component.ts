@@ -1,13 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { pointer } from "d3";
-import { NgStyle } from "@angular/common";
 
 @Component({
   selector: 'app-tooltip',
-  standalone: true,
-  imports: [
-    NgStyle
-  ],
+  imports: [],
   templateUrl: './tooltip.component.html',
   styleUrl: './tooltip.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush

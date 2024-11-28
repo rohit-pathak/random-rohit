@@ -10,7 +10,6 @@ import { MatDivider } from "@angular/material/divider";
 
 @Component({
   selector: 'app-india-elections-2024',
-  standalone: true,
   imports: [
     ConstituenciesMapComponent,
     ConstituencyDetailComponent,

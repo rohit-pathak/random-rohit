@@ -4,7 +4,6 @@ import { RouterLink } from "@angular/router";
 
 @Component({
   selector: 'app-main-header',
-  standalone: true,
   imports: [
     MatDivider,
     RouterLink,

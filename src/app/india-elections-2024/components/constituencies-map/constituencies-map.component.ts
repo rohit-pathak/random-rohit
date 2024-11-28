@@ -22,7 +22,6 @@ import { TooltipComponent } from "../../../shared/components/tooltip/tooltip.com
 
 @Component({
   selector: 'app-constituencies-map',
-  standalone: true,
   imports: [
     TooltipComponent
   ],
@@ -93,7 +92,7 @@ export class ConstituenciesMapComponent implements AfterViewInit {
           const constituencyId = `${feature.properties?.['ST_CODE']}${feature.properties?.['PC_No']}`;
           const constituency = this.electionDataStore.constituenciesById()[constituencyId] || {};
           const results = this.electionDataStore.resultsByConstituency()[constituencyId] || [];
-          return {feature, constituency, results };
+          return { feature, constituency, results };
         })
       )
       .join('path')
@@ -103,11 +102,11 @@ export class ConstituenciesMapComponent implements AfterViewInit {
       .attr('fill', d => this.colorScheme(d.results?.[0]?.partyName))
       .attr('cursor', 'pointer')
       .on('click', (_, d) => this.onConstituencyClick(d))
-      .on('mouseover', function(e, d) {
+      .on('mouseover', function (e, d) {
         component.onConstituencyMouseover(d, select<BaseType, ConstituencyMapItem>(this));
       })
       .on('mousemove', (e) => this.onConstituencyMousemove(e))
-      .on('mouseout', function() {
+      .on('mouseout', function () {
         component.onConstituencyMouseout(select<BaseType, ConstituencyMapItem>(this));
       });
   }
@@ -122,7 +121,7 @@ export class ConstituenciesMapComponent implements AfterViewInit {
       const idsToHighlight = new Set(constituenciesToHighlight.map(c => c.id));
       this.constituenciesGroup.selectAll<SVGPathElement, ConstituencyMapItem>('path')
         .attr('opacity', d => idsToHighlight.has(d.constituency?.id) ? 1 : 0.2)
-    }, {injector: this.injector });
+    }, { injector: this.injector });
   }
 
   private onConstituencyClick(c: ConstituencyMapItem): void {

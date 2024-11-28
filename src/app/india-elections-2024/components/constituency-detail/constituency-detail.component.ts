@@ -10,7 +10,6 @@ import {
 
 @Component({
   selector: 'app-constituency-detail',
-  standalone: true,
   imports: [
     TitleCasePipe,
     DonutChartComponent,
