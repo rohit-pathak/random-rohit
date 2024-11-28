@@ -8,6 +8,6 @@
 @if (showTooltip()) {
   <app-tooltip [triggerEvent]="tooltipEvent()" [target]="host.nativeElement">
     <ng-container tooltip-header>{{ tooltipData()?.title }}</ng-container>
-    <div>{{ tooltipData()?.value }}</div>
+    <div>{{ tooltipData()?.value | number }}</div>
   </app-tooltip>
 }
