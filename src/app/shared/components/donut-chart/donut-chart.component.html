@@ -1,0 +1,13 @@
+<svg #chart>
+  <foreignObject height="100%" width="100%">
+    <div xmlns="http://www.w3.org/1999/xhtml" class="chart-title-container">
+      <small xmlns="http://www.w3.org/1999/xhtml" class="chart-title text-secondary">{{ chartTitle() }}</small>
+    </div>
+  </foreignObject>
+</svg>
+@if (showTooltip()) {
+  <app-tooltip [triggerEvent]="tooltipEvent()" [target]="host.nativeElement">
+    <ng-container tooltip-header>{{ tooltipData()?.title }}</ng-container>
+    <div>{{ tooltipData()?.value | number }}</div>
+  </app-tooltip>
+}

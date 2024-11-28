@@ -1,0 +1,32 @@
+.description {
+  margin-bottom: 2rem;
+}
+
+.charts {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+
+  section.left {
+    flex: 1 1 60%; /* 60% width */
+    min-width: 0;
+  }
+
+  section.right {
+    flex: 1 1 40%;
+    min-width: 0;
+
+    mat-divider {
+      border-color: #eee;
+      margin: 1rem 0;
+    }
+  }
+
+  @media (max-width: 768px) {
+    flex-wrap: wrap;
+
+    section.left, section.right {
+      flex: 1 1 100%; /* On smaller screens, both take full width */
+    }
+  }
+}

@@ -1,0 +1,26 @@
+<h4 xmlns="http://www.w3.org/1999/html">2024 Indian Parliamentary Election Results</h4>
+<div class="description">
+  <p>
+    This visualization shows the results of the Indian Lok Sabha elections of 2024.
+  </p>
+  <p>
+    The National Democratic Alliance (NDA) coalition led by the Bharatiya Janata Party (BJP) won a total of 293 seats (out of 543).
+    The BJP itself won 240 seats, falling short of the halfway mark of 273.
+  </p>
+  <p>
+    The INDI Alliance (I.N.D.I.A.) led by the Indian National Congress (INC) won 234 seats, with the INC winning 99 seats.
+  </p>
+</div>
+<div class="charts">
+  <section class="left">
+    <app-constituencies-map (constituencyClick)="onConstituencyClick($event)" [highlight]="highlightConstituencies()"/>
+    <small>
+      Source: <a href="https://results.eci.gov.in/PcResultGenJune2024/index.htm" target="_blank">Election Commission of India</a>
+    </small>
+  </section>
+  <section class="right">
+    <app-total-stats (partyHover)="onPartyHover($event)" />
+    <mat-divider/>
+    <app-constituency-detail [constituency]="selectedConstituency()"/>
+  </section>
+</div>

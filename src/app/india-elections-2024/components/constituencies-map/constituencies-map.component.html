@@ -1,0 +1,6 @@
+<svg #chart></svg>
+<app-tooltip [triggerEvent]="tooltipEvent()" [target]="host.nativeElement">
+  <ng-container tooltip-header>{{hoveredConstituency()?.constituency?.name}}</ng-container>
+  <div>{{hoveredConstituency()?.results?.[0]?.partyName}}</div>
+  <small>{{hoveredConstituency()?.results?.[0]?.candidateName}}</small>
+</app-tooltip>

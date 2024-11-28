@@ -1,0 +1,5 @@
+<svg #chart></svg>
+<div #tooltip class="viz-tooltip" [ngClass]="{'hidden': hoveredDatum() === null}">
+  <div><strong>{{ hoveredDatum()?.label }}</strong></div>
+  <div>{{ hoveredDatum()?.value }}</div>
+</div>

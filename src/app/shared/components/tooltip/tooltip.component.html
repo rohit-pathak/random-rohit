@@ -1,0 +1,5 @@
+<div #tooltip class="viz-tooltip tooltip-container" [class.hidden]="triggerEvent() === null"
+     [style.left]="position().left" [style.top]="position().top">
+  <div><strong><ng-content select="[tooltip-header]" /></strong></div>
+  <div><ng-content /></div>
+</div>
