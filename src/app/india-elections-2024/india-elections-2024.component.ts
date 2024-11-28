@@ -27,7 +27,7 @@ export class IndiaElections2024Component implements OnInit {
 
   selectedConstituency = signal<Constituency | null>(null);
   hoveredParties = signal<string[] | null>(null);
-  highlightConstituencies = computed(() => {
+  highlightConstituencies = computed<Constituency[] | null>(() => {
     const parties = this.hoveredParties();
     if (!parties) {
       return null;
