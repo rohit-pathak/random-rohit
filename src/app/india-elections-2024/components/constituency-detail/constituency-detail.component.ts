@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { Constituency, ConstituencyResult } from "../../models/models";
-import { DecimalPipe, JsonPipe, TitleCasePipe } from "@angular/common";
+import { DecimalPipe, TitleCasePipe } from "@angular/common";
 import { ElectionDataStore } from "../../election-data.store";
 import { DonutChartComponent } from "../../../shared/components/donut-chart/donut-chart.component";
 import { ColorScaleService } from "../../services/color-scale.service";
@@ -15,8 +15,7 @@ import {
     TitleCasePipe,
     DonutChartComponent,
     HorizontalBarChartComponent,
-    DecimalPipe,
-    JsonPipe
+    DecimalPipe
   ],
   templateUrl: './constituency-detail.component.html',
   styleUrl: './constituency-detail.component.scss',

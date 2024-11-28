@@ -1,6 +1,6 @@
 <app-donut-chart (sectorMouseover)="onSectorMouseover($event)" (sectorMouseout)="onSectorMouseout()"
                  [data]="seatsData()" [valueFn]="seatsValueFn" [labelFn]="labelFn" [colorFn]="colorFn"
-                 [highlight]="highlightParty()" title="Total seats won"/>
+                 [highlight]="highlightParty()" chartTitle="Total seats won"/>
 <app-donut-chart (sectorMouseover)="onSectorMouseover($event)" (sectorMouseout)="onSectorMouseout()"
                  [data]="votePctData()" [valueFn]="votePctFn" [labelFn]="labelFn" [colorFn]="colorFn"
-                 [highlight]="highlightParty()" title="Total vote share"/>
+                 [highlight]="highlightParty()" chartTitle="Total vote share"/>

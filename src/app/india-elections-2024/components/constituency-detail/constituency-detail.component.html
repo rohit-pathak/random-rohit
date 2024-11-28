@@ -4,8 +4,8 @@
   <div class="vote-pct">
     <app-donut-chart [data]="constituencyDetail()?.results || []" [valueFn]="pctDonutValueFn()"
                      [labelFn]="pctDonutLabelFn()" [colorFn]="colorFn()" [highlight]="hoveredResult()?.partyName"
-                     [showTooltip]="false" (sectorMouseover)="onPctSectorHover($event)"
-                     (sectorMouseout)="onPctSectorMouseout()"
+                     [showTooltip]="false" chartTitle="Vote share"
+                     (sectorMouseover)="onPctSectorHover($event)" (sectorMouseout)="onPctSectorMouseout()"
     />
     <div class="vote-pct-detail">
       @if (candidateDetail()) {
