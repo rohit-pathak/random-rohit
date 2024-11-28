@@ -3,14 +3,13 @@ import { pointer } from "d3";
 import { NgStyle } from "@angular/common";
 
 @Component({
-  selector: 'app-tooltip',
-  standalone: true,
-  imports: [
-    NgStyle
-  ],
-  templateUrl: './tooltip.component.html',
-  styleUrl: './tooltip.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'app-tooltip',
+    imports: [
+        NgStyle
+    ],
+    templateUrl: './tooltip.component.html',
+    styleUrl: './tooltip.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class TooltipComponent {
   triggerEvent = input.required<Event | null>();

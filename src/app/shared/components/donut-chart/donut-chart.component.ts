@@ -17,16 +17,15 @@ import { CommonModule } from "@angular/common";
 import { ResizeDirective } from "../../directives/resize.directive";
 
 @Component({
-  selector: 'app-donut-chart',
-  standalone: true,
-  imports: [
-    CommonModule,
-    TooltipComponent
-  ],
-  templateUrl: './donut-chart.component.html',
-  styleUrl: './donut-chart.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  hostDirectives: [ResizeDirective],
+    selector: 'app-donut-chart',
+    imports: [
+        CommonModule,
+        TooltipComponent
+    ],
+    templateUrl: './donut-chart.component.html',
+    styleUrl: './donut-chart.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    hostDirectives: [ResizeDirective]
 })
 export class DonutChartComponent<T> implements AfterViewInit {
   data = input.required<T[]>();

@@ -28,13 +28,12 @@ import { CommonModule } from "@angular/common";
 import { ResizeDirective } from "../../directives/resize.directive";
 
 @Component({
-  selector: 'app-horizontal-bar-chart',
-  standalone: true,
-  imports: [CommonModule],
-  templateUrl: './horizontal-bar-chart.component.html',
-  styleUrl: './horizontal-bar-chart.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  hostDirectives: [ResizeDirective],
+    selector: 'app-horizontal-bar-chart',
+    imports: [CommonModule],
+    templateUrl: './horizontal-bar-chart.component.html',
+    styleUrl: './horizontal-bar-chart.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush,
+    hostDirectives: [ResizeDirective]
 })
 export class HorizontalBarChartComponent<T> implements AfterViewInit {
   data = input.required<T[]>();

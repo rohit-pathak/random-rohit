@@ -9,18 +9,17 @@ import { TotalStatsComponent } from "./components/total-stats/total-stats.compon
 import { MatDivider } from "@angular/material/divider";
 
 @Component({
-  selector: 'app-india-elections-2024',
-  standalone: true,
-  imports: [
-    ConstituenciesMapComponent,
-    ConstituencyDetailComponent,
-    TotalStatsComponent,
-    MatDivider
-  ],
-  providers: [ElectionDataService, ElectionDataStore, ColorScaleService],
-  templateUrl: './india-elections-2024.component.html',
-  styleUrl: './india-elections-2024.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'app-india-elections-2024',
+    imports: [
+        ConstituenciesMapComponent,
+        ConstituencyDetailComponent,
+        TotalStatsComponent,
+        MatDivider
+    ],
+    providers: [ElectionDataService, ElectionDataStore, ColorScaleService],
+    templateUrl: './india-elections-2024.component.html',
+    styleUrl: './india-elections-2024.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class IndiaElections2024Component implements OnInit {
   private electionDataStore = inject(ElectionDataStore);

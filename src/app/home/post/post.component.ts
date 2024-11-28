@@ -3,11 +3,10 @@ import { RouterLink } from "@angular/router";
 import { DatePipe } from "@angular/common";
 
 @Component({
-  selector: 'app-post',
-  standalone: true,
-  imports: [RouterLink, DatePipe],
-  templateUrl: './post.component.html',
-  styleUrl: './post.component.scss'
+    selector: 'app-post',
+    imports: [RouterLink, DatePipe],
+    templateUrl: './post.component.html',
+    styleUrl: './post.component.scss'
 })
 export class PostComponent {
   date = input.required<Date>();

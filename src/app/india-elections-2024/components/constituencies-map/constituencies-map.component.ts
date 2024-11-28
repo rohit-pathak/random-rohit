@@ -21,15 +21,14 @@ import { ResizeDirective } from "../../../shared/directives/resize.directive";
 import { TooltipComponent } from "../../../shared/components/tooltip/tooltip.component";
 
 @Component({
-  selector: 'app-constituencies-map',
-  standalone: true,
-  imports: [
-    TooltipComponent
-  ],
-  templateUrl: './constituencies-map.component.html',
-  styleUrl: './constituencies-map.component.scss',
-  hostDirectives: [ResizeDirective],
-  changeDetection: ChangeDetectionStrategy.OnPush
+    selector: 'app-constituencies-map',
+    imports: [
+        TooltipComponent
+    ],
+    templateUrl: './constituencies-map.component.html',
+    styleUrl: './constituencies-map.component.scss',
+    hostDirectives: [ResizeDirective],
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ConstituenciesMapComponent implements AfterViewInit {
   highlight = input<Constituency[] | null>(null);
