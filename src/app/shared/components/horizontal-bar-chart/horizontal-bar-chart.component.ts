@@ -96,7 +96,7 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
       this.drawAxes();
       this.handleHover();
       this.setSVGHeight();
-    }, { injector: this.injector, allowSignalWrites: true });
+    }, { injector: this.injector });
   }
 
   private highlightInputDatum(): void {
