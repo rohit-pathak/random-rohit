@@ -1,6 +1,6 @@
 @if (constituencyDetail()) {
   <div><small>{{ constituencyDetail()?.stateName }}</small></div>
-  <h6>{{ constituencyDetail()?.constituency?.name | titlecase }}</h6>
+  <h4 class="constituency-name">{{ constituencyDetail()?.constituency?.name | titlecase }}</h4>
   <div class="vote-pct">
     <app-donut-chart [data]="constituencyDetail()?.results || []" [valueFn]="pctDonutValueFn()"
                      [labelFn]="pctDonutLabelFn()" [colorFn]="colorFn()" [highlight]="hoveredResult()?.partyName"

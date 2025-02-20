@@ -1,6 +1,11 @@
 :host {
   width: 100%;
 
+  .constituency-name {
+    margin-top: 0.25rem;
+    margin-bottom: 1rem;
+  }
+
   .vote-pct {
     display: flex;
     gap: 1rem;
