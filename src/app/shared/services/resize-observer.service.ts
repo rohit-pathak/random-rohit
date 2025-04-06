@@ -17,9 +17,10 @@ export class ResizeObserverService {
   });
 
   public observeResize(elementRef: ElementRef<Element>): Signal<DOMRectReadOnly> {
-    this.elementToResizeSignals.set(elementRef.nativeElement, signal(elementRef.nativeElement.getBoundingClientRect()));
+    const dimensions = signal(elementRef.nativeElement.getBoundingClientRect());
+    this.elementToResizeSignals.set(elementRef.nativeElement, dimensions);
     this.resizeObserver.observe(elementRef.nativeElement);
-    return this.elementToResizeSignals.get(elementRef.nativeElement)!;
+    return dimensions;
   }
 
   public unObserve(elementRef: ElementRef<Element>): void {
