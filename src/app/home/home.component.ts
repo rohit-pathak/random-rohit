@@ -17,7 +17,7 @@ export class HomeComponent {
       route: '/india-elections-2024'
     },
     {
-      date: new Date('2025-02-20'),
+      date: new Date('2025-05-03'),
       title: 'Resize Directives',
       route: '/resize-with-directives'
     }
