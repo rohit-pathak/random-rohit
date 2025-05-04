@@ -15,6 +15,11 @@ export class HomeComponent {
       date: new Date('2024-11-28'),
       title: 'Indian Lok Sabha Elections 2024 Results Visualized',
       route: '/india-elections-2024'
+    },
+    {
+      date: new Date('2025-05-03'),
+      title: 'Resize Directives',
+      route: '/resize-with-directives'
     }
   ]
 }

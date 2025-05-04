@@ -65,8 +65,8 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
   private svgRef = viewChild.required<ElementRef>('chart');
   private tooltip = viewChild.required<ElementRef>('tooltip');
   private injector = inject(Injector);
-  private resize = inject(ResizeDirective).resize;
-  private width = computed(() => this.resize().width);
+  private dimensions = inject(ResizeDirective).dimensions;
+  private width = computed(() => this.dimensions().width);
   private height = 0; // determined by number of bars
 
   ngAfterViewInit() {
