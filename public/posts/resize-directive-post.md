@@ -2,7 +2,7 @@
 
 I was building some chart components and I wanted to make them responsive. My main problem was:
 
-> How do I get the dimensions of the chart component’s host element whenever it is resized so that I can adjust the SVG and the shapes/scales within it?”
+> How do I get the dimensions of the chart component’s host element whenever it is resized so that I can adjust the SVG and the shapes/scales within it?
 
 The browser's [ResizeObserver](https://developer.mozilla.org/en-US/docs/Web/API/ResizeObserver) exists just for this purpose. As we look at its API, we see that one instance of a ResizeObserver can observe multiple DOM elements (the callback you provide accepts a list of DOM elements that have been resized).
 
@@ -83,5 +83,5 @@ export class DonutChartComponent<T> implements AfterViewInit {
 }
 ```
 
-And that’s it! We can now easily get access to our component’s dimensions without worrying about cleanup or having to deal with the `ResizeObserver` callback; the `ResizeDirective` (using the `ResizeObserverService` internally) takes care of everything.
+And that’s it! Whenever we want to access a component's host element's dimensions, we just apply this `ResizeDirective` to it as a `hostDirective` and we get a `dimensions` signal that we can do stuff with, all without worrying about cleanup or having to deal with the `ResizeObserver` callback.
 
