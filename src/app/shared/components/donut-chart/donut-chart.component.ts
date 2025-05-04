@@ -39,9 +39,9 @@ export class DonutChartComponent<T> implements AfterViewInit {
   sectorMouseover = output<T>();
   sectorMouseout = output<void>();
 
-  private resize = inject(ResizeDirective).resize;
+  private dimensions = inject(ResizeDirective).dimensions;
   private arcGroup!: Selection<SVGGElement, unknown, HTMLElement, unknown>;
-  private width = computed(() => this.resize().width ?? 100);
+  private width = computed(() => this.dimensions().width ?? 100);
   private svgRef = viewChild.required<ElementRef>('chart');
   private svg = computed(() => select<SVGSVGElement, unknown>(this.svgRef().nativeElement));
   private injector = inject(Injector);

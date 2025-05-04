@@ -10,7 +10,7 @@ export class ResizeDirective implements OnDestroy {
   private resizeObserverService = inject(ResizeObserverService);
   private hostElementRef = inject(ElementRef);
 
-  public resize = this.resizeObserverService.observeResize(this.hostElementRef);
+  public dimensions = this.resizeObserverService.observeResize(this.hostElementRef);
 
   ngOnDestroy() {
     this.resizeObserverService.unObserve(this.hostElementRef);
