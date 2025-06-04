@@ -21,7 +21,7 @@ export class HomeComponent {
       title: 'Resize Directives',
       route: '/resize-with-directives'
     }
-  ]
+  ].sort((a, b) => +b.date - +a.date);
 }
 
 interface Post {

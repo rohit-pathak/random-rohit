@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Outer circle -->
+  <circle cx="32" cy="32" r="30" fill="none" stroke="#964900" stroke-width="2"/>
+
+  <!-- Glasses -->
+  <circle cx="22" cy="26" r="9" fill="none" stroke="#964900" stroke-width="1.5"/>
+  <circle cx="42" cy="26" r="9" fill="none" stroke="#964900" stroke-width="1.5"/>
+  <line x1="31" y1="26" x2="33" y2="26" stroke="#964900" stroke-width="1.5"/>
+
+  <!-- Pupils -->
+  <circle cx="22" cy="26" r="3" fill="#964900"/>
+  <circle cx="42" cy="26" r="3" fill="#964900"/>
+
+  <!-- Beak (larger triangle, same lowered position) -->
+  <path d="M28.5 36 L32 41 L35.5 36 Z" fill="#964900"/>
+</svg>

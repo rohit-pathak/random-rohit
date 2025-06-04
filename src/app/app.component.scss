@@ -1,6 +1,13 @@
 
-.container {
-  margin: 1rem;
-  padding-bottom: 4rem;
-  max-width: 1140px;
+:host {
+  display: flex;
+  justify-content: center;
+
+  .container {
+    margin: 1rem;
+    padding-bottom: 4rem;
+    width: 100%;
+    max-width: 1140px;
+  }
+
 }

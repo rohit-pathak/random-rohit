@@ -5,8 +5,17 @@ import { DatePipe } from "@angular/common";
 @Component({
   selector: 'app-post',
   imports: [RouterLink, DatePipe],
-  templateUrl: './post.component.html',
-  styleUrl: './post.component.scss'
+  template: `
+    <a [routerLink]="route()">{{ title() }}</a>
+    <div class="date">[{{ date() | date }}]</div>
+  `,
+  styles: `
+    :host {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+  `
 })
 export class PostComponent {
   date = input.required<Date>();
