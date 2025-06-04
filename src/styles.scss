@@ -23,18 +23,19 @@ body {
   .text-secondary {
     color: var(--mat-sys-secondary);
   }
-}
-.viz-tooltip {
-  pointer-events: none;
-  border: 1px solid #eee;
-  border-radius: 4px;
-  background-color: #fff;
-  max-width: 250px;
-  position: absolute;
-  padding: 5px;
-  z-index: 10;
 
-  &.hidden {
-    visibility: hidden;
+  .viz-tooltip {
+    pointer-events: none;
+    border: 1px solid var(--mat-sys-outline);
+    border-radius: 4px;
+    background-color: var(--mat-sys-secondary-container);
+    max-width: 250px;
+    position: absolute;
+    padding: 5px;
+    z-index: 10;
+
+    &.hidden {
+      visibility: hidden;
+    }
   }
 }
