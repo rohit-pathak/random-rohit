@@ -59,7 +59,7 @@ export class ResizeDirective implements OnDestroy {
   private resizeObserverService = inject(ResizeObserverService);
   private hostElementRef = inject(ElementRef);
 
-  public resize = this.resizeObserverService.observeResize(this.hostElementRef);
+  public dimensions = this.resizeObserverService.observeResize(this.hostElementRef);
 
   ngOnDestroy() {
     this.resizeObserverService.unObserve(this.hostElementRef);
@@ -79,7 +79,7 @@ But how do we get access to the directive’s `dimensions` signal in our compone
 export class DonutChartComponent<T> implements AfterViewInit {
   private dimensions = inject(ResizeDirective).dimensions;
   
-  // ... other donut chart code
+  // ... do stuff when host's dimensions change
 }
 ```
 
