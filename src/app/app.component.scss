@@ -2,10 +2,9 @@
 :host {
   display: flex;
   justify-content: center;
+  margin: 1rem;
 
   .container {
-    margin: 1rem;
-    padding-bottom: 4rem;
     width: 100%;
     max-width: 1140px;
   }
