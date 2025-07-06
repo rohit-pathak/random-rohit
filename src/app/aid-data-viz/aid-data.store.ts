@@ -4,28 +4,49 @@ import { pipe, switchMap } from "rxjs";
 import { AidDataService, AidTransaction } from "./aid-data.service";
 import { inject } from "@angular/core";
 import { tapResponse } from "@ngrx/operators";
+import { FeatureCollection } from "geojson";
 
 interface AidDataState {
   isLoading: boolean;
+  isMapLoading: boolean;
   error: string | null;
+  countriesGeoJson: FeatureCollection | null;
   data: AidTransaction[];
 }
 
 export const AidDataStore = signalStore(
   withState<AidDataState>({
     isLoading: false,
+    isMapLoading: false,
     error: null,
-    data: []
+    data: [],
+    countriesGeoJson: null,
   }),
   withMethods((store, aidDataService = inject(AidDataService)) => {
     return {
+      loadMap: rxMethod<void>(
+        pipe(
+          switchMap(() => {
+            return aidDataService.getCountriesMap().pipe(
+              tapResponse(
+                (res) => {
+                  patchState(store, {isMapLoading: false, countriesGeoJson: res});
+                },
+                (err) => {
+                  console.error(err);
+                  patchState(store, {isMapLoading: false, error: 'Failed to load map data.'});
+                }
+              )
+            )
+          })
+        )
+      ),
       loadData: rxMethod<void>(
         pipe(
           switchMap(() => {
             return aidDataService.getTransactionData().pipe(
               tapResponse(
                 res => {
-                  console.log(res);
                   patchState(store, { isLoading: false, data: res });
                 },
                 err => {
