@@ -76,6 +76,8 @@ export class CountryMapComponent implements AfterViewInit {
   }
 
   private drawOrganizations(): void {
+    const organizations = this.aidDataStore.organizations();
+    console.log(organizations);
     this.organizationsGroup()
       .selectAll('text')
       .data([1])
