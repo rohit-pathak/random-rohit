@@ -1,1 +1,4 @@
-<svg #chart ></svg>
+<svg #chart [attr.width]="dimensions().width" [attr.height]="svgHeight()">
+  <g #countriesGroup class="countries"></g>
+  <g #organizationsGroup class="organizations"></g>
+</svg>
