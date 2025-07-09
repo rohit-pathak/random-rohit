@@ -11,7 +11,7 @@ import {
 } from '@angular/core';
 import { AidDataStore } from "../aid-data.store";
 import { ResizeDirective } from "../../shared/directives/resize.directive";
-import { geoEquirectangular, geoNaturalEarth1, geoPath, select } from "d3";
+import { geoEquirectangular, geoPath, select } from "d3";
 import { FeatureCollection } from "geojson";
 
 @Component({
@@ -40,6 +40,8 @@ export class CountryMapComponent implements AfterViewInit {
     }
     return projection;
   });
+  private maxCircleRadius = 15;
+
 
   ngAfterViewInit(): void {
     this.initializeDrawing();
@@ -55,11 +57,11 @@ export class CountryMapComponent implements AfterViewInit {
       this.drawMap(geoJson);
       const mapHeight = this.countriesGroup().node()?.getBoundingClientRect().height ?? 0;
       this.organizationsGroup()
-        .attr('transform', `translate(0, ${mapHeight + 16})`);
+        .attr('transform', `translate(0, ${mapHeight + this.maxCircleRadius * 2})`);
       this.drawOrganizations();
 
       const organizationsHeight = this.organizationsGroup().node()?.getBoundingClientRect().height ?? 0;
-      const totalHeight = mapHeight + organizationsHeight;
+      const totalHeight = mapHeight + organizationsHeight + 16; // 16 extra for padding
       this.svgHeight.set(totalHeight);
     }, { injector: this.injector })
   }
@@ -77,12 +79,20 @@ export class CountryMapComponent implements AfterViewInit {
 
   private drawOrganizations(): void {
     const organizations = this.aidDataStore.organizations();
+    const width = this.dimensions().width;
+    const circleBoxWidth = this.maxCircleRadius * 2 + 2;
+    const circlesPerRow = Math.floor(width / (circleBoxWidth));
     console.log(organizations);
     this.organizationsGroup()
-      .selectAll('text')
-      .data([1])
-      .join('text')
-      .text('organizations group');
+      .selectAll('circle')
+      .data(organizations)
+      .join('circle')
+      .attr('class', 'organization')
+      .attr('cx', (_, i) => (i % circlesPerRow) * (circleBoxWidth) + (circleBoxWidth / 2))
+      .attr('cy', (_, i) => Math.floor(i / circlesPerRow) * (circleBoxWidth))
+      .attr('r', this.maxCircleRadius)
+      .attr('fill', '#f06d06')
+      .attr('opacity', 0.5);
   }
 
 }
