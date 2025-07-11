@@ -10,7 +10,7 @@ import { CountryMapComponent } from "./country-map/country-map.component";
   ],
   templateUrl: './aid-data-viz.component.html',
   styleUrl: './aid-data-viz.component.scss',
-  providers: [AidDataStore, AidDataService],
+  providers: [AidDataService, AidDataStore],
 })
 export class AidDataVizComponent implements OnInit {
   private store = inject(AidDataStore);
