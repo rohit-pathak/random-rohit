@@ -48,7 +48,34 @@ export class AidDataStore {
     }
     const countrySet = new Set(data.flatMap(d => [d.donor, d.recipient]));
     return [...countrySet.values()].filter(c => !this.mapCountries().has(c));
-  })
+  });
+
+  readonly dataByCountryOrOrg = computed<Map<string, AidDataAggregate>>(() => {
+    const data = this.data();
+    const nameDataMap = new Map<string, AidDataAggregate>();
+    for (const transaction of data) {
+      const donorEntry = nameDataMap.get(transaction.donor) ?? {
+        name: transaction.donor,
+        totalDonated: 0,
+        totalReceived: 0,
+        transactions: []
+      }
+      donorEntry.totalDonated += transaction.amount;
+      donorEntry.transactions.push(transaction);
+      nameDataMap.set(transaction.donor, donorEntry);
+
+      const recipientEntry = nameDataMap.get(transaction.recipient) ?? {
+        name: transaction.recipient,
+        totalDonated: 0,
+        totalReceived: 0,
+        transactions: []
+      }
+      recipientEntry.totalReceived += transaction.amount;
+      recipientEntry.transactions.push(transaction);
+      nameDataMap.set(transaction.recipient, recipientEntry);
+    }
+    return nameDataMap;
+  });
 
   // methods
   readonly loadMap = rxMethod<void>(
@@ -87,4 +114,12 @@ export class AidDataStore {
     )
   );
 
+}
+
+
+export interface AidDataAggregate {
+  name: string;
+  totalDonated: number;
+  totalReceived: number;
+  transactions: AidTransaction[];
 }

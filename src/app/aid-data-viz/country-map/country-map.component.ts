@@ -11,8 +11,8 @@ import {
 } from '@angular/core';
 import { AidDataStore } from "../aid-data.store";
 import { ResizeDirective } from "../../shared/directives/resize.directive";
-import { geoEquirectangular, geoPath, select } from "d3";
-import { FeatureCollection } from "geojson";
+import { geoEquirectangular, geoPath, scaleLog, select, selectAll } from "d3";
+import { Feature, FeatureCollection, Geometry } from "geojson";
 
 @Component({
   selector: 'app-country-map',
@@ -40,7 +40,13 @@ export class CountryMapComponent implements AfterViewInit {
     }
     return projection;
   });
-  private maxCircleRadius = 15;
+  private readonly pathGenerator = computed(() => geoPath(this.projection()));
+  private readonly radiusScale = computed(() => {
+    const transactionsMap = this.aidDataStore.dataByCountryOrOrg();
+    const amounts = [...transactionsMap.values()].map(t => t.totalReceived + t.totalDonated);
+    return scaleLog([Math.min(...amounts), Math.max(...amounts)], [1, this.maxCircleRadius]);
+  })
+  private maxCircleRadius = 10;
 
 
   ngAfterViewInit(): void {
@@ -55,6 +61,7 @@ export class CountryMapComponent implements AfterViewInit {
         return;
       }
       this.drawMap(geoJson);
+      this.drawSymbolsOnMap();
       const mapHeight = this.countriesGroup().node()?.getBoundingClientRect().height ?? 0;
       this.organizationsGroup()
         .attr('transform', `translate(0, ${mapHeight + this.maxCircleRadius * 2})`);
@@ -67,14 +74,35 @@ export class CountryMapComponent implements AfterViewInit {
   }
 
   private drawMap(geoJson: FeatureCollection): void {
-    const pathGenerator = geoPath(this.projection());
     this.countriesGroup()
       .selectAll('path')
       .data(geoJson.features)
       .join('path')
-      .attr('d', pathGenerator)
+      .attr('d', this.pathGenerator())
       .attr('fill', 'none')
       .attr('stroke', '#aaa');
+  }
+
+  private drawSymbolsOnMap(): void {
+    const dataByCountry = this.aidDataStore.dataByCountryOrOrg();
+    const symbolMapData = selectAll<SVGPathElement, Feature>('path')
+      .data()
+      .filter(d => dataByCountry.has(d.properties?.['name']))
+      .map(d => {
+        return {
+          centroid: this.pathGenerator().centroid(d),
+          data: dataByCountry.get(d.properties!['name'])!,
+        };
+      });
+    this.countriesGroup()
+      .selectAll('circle')
+      .data(symbolMapData)
+      .join('circle') // TODO: pie chart
+      .attr('cx', d => d.centroid[0])
+      .attr('cy', d => d.centroid[1])
+      .attr('r', d => this.radiusScale()(d.data.totalDonated + d.data.totalReceived))
+      .attr('fill', '#f06d06')
+      .attr('opacity', 0.5);
   }
 
   private drawOrganizations(): void {
@@ -82,7 +110,6 @@ export class CountryMapComponent implements AfterViewInit {
     const width = this.dimensions().width;
     const circleBoxWidth = this.maxCircleRadius * 2 + 2;
     const circlesPerRow = Math.floor(width / (circleBoxWidth));
-    console.log(organizations);
     this.organizationsGroup()
       .selectAll('circle')
       .data(organizations)
