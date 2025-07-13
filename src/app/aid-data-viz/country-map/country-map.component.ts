@@ -107,6 +107,7 @@ export class CountryMapComponent implements AfterViewInit {
 
   private drawOrganizations(): void {
     const organizations = this.aidDataStore.organizations();
+    const orgDataMap = this.aidDataStore.dataByCountryOrOrg();
     const width = this.dimensions().width;
     const circleBoxWidth = this.maxCircleRadius * 2 + 2;
     const circlesPerRow = Math.floor(width / (circleBoxWidth));
@@ -117,7 +118,7 @@ export class CountryMapComponent implements AfterViewInit {
       .attr('class', 'organization')
       .attr('cx', (_, i) => (i % circlesPerRow) * (circleBoxWidth) + (circleBoxWidth / 2))
       .attr('cy', (_, i) => Math.floor(i / circlesPerRow) * (circleBoxWidth))
-      .attr('r', this.maxCircleRadius)
+      .attr('r', d => this.radiusScale()((orgDataMap.get(d)?.totalReceived ?? 0) + (orgDataMap.get(d)?.totalDonated ?? 0)))
       .attr('fill', '#f06d06')
       .attr('opacity', 0.5);
   }
