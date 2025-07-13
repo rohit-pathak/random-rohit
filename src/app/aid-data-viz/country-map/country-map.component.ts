@@ -11,8 +11,19 @@ import {
 } from '@angular/core';
 import { AidDataStore } from "../aid-data.store";
 import { ResizeDirective } from "../../shared/directives/resize.directive";
-import { geoEquirectangular, geoPath, scaleLog, select, selectAll } from "d3";
-import { Feature, FeatureCollection, Geometry } from "geojson";
+import {
+  arc,
+  geoEquirectangular,
+  geoPath,
+  pie,
+  PieArcDatum,
+  scaleLog,
+  scaleOrdinal,
+  schemeRdBu,
+  select,
+  selectAll
+} from "d3";
+import { Feature, FeatureCollection } from "geojson";
 
 @Component({
   selector: 'app-country-map',
@@ -40,13 +51,17 @@ export class CountryMapComponent implements AfterViewInit {
     }
     return projection;
   });
+  private maxCircleRadius = 10;
   private readonly pathGenerator = computed(() => geoPath(this.projection()));
   private readonly radiusScale = computed(() => {
     const transactionsMap = this.aidDataStore.dataByCountryOrOrg();
     const amounts = [...transactionsMap.values()].map(t => t.totalReceived + t.totalDonated);
     return scaleLog([Math.min(...amounts), Math.max(...amounts)], [1, this.maxCircleRadius]);
-  })
-  private maxCircleRadius = 10;
+  });
+  private readonly colorScale = scaleOrdinal(['received', 'donated'], [schemeRdBu[3][0], schemeRdBu[3][2]]);
+  private readonly arcGenerator = arc<PieArcDatum<TransactionPieDatum>>()
+    .innerRadius(0)
+    .outerRadius(this.maxCircleRadius);
 
 
   ngAfterViewInit(): void {
@@ -80,7 +95,8 @@ export class CountryMapComponent implements AfterViewInit {
       .join('path')
       .attr('d', this.pathGenerator())
       .attr('fill', 'none')
-      .attr('stroke', '#aaa');
+      .attr('stroke', '#bbb')
+      .attr('stroke-width', '0.05rem');
   }
 
   private drawSymbolsOnMap(): void {
@@ -94,15 +110,44 @@ export class CountryMapComponent implements AfterViewInit {
           data: dataByCountry.get(d.properties!['name'])!,
         };
       });
-    this.countriesGroup()
-      .selectAll('circle')
+    const pieGenerator = pie<TransactionPieDatum>()
+      .value(d => d.amount)
+      .sort((a, b) => a.transactionType.localeCompare(b.transactionType));
+
+    const symbolGroups = this.countriesGroup()
+      .selectAll('.symbol')
       .data(symbolMapData)
-      .join('circle') // TODO: pie chart
-      .attr('cx', d => d.centroid[0])
-      .attr('cy', d => d.centroid[1])
-      .attr('r', d => this.radiusScale()(d.data.totalDonated + d.data.totalReceived))
-      .attr('fill', '#f06d06')
-      .attr('opacity', 0.5);
+      .join('g')
+      .attr('class', 'symbol')
+      .attr('transform', d => `translate(${d.centroid.join(',')})`);
+    symbolGroups
+      .selectAll('path')
+      .data(d => {
+        const total = d.data.totalReceived + d.data.totalDonated;
+        const receivedPct = d.data.totalReceived === 0 ? 0 : Math.max(1, (d.data.totalReceived / total) * 100);
+        const donatedPct = 100 - receivedPct;
+        return pieGenerator(
+          [
+            {
+              transactionType: 'received',
+              amount: receivedPct,
+              total
+            },
+            {
+              transactionType: 'donated',
+              amount: donatedPct,
+              total
+            }
+          ].filter(t => t.amount !== 0) as TransactionPieDatum[]
+        );
+      })
+      .join('path')
+      .attr('class', 'symbol')
+      .attr('d', d => {
+        return this.arcGenerator.outerRadius(this.radiusScale()(d.data.total))(d);
+      })
+      .attr('fill', d => this.colorScale(d.data.transactionType))
+      .attr('opacity', 0.7);
   }
 
   private drawOrganizations(): void {
@@ -120,7 +165,13 @@ export class CountryMapComponent implements AfterViewInit {
       .attr('cy', (_, i) => Math.floor(i / circlesPerRow) * (circleBoxWidth))
       .attr('r', d => this.radiusScale()((orgDataMap.get(d)?.totalReceived ?? 0) + (orgDataMap.get(d)?.totalDonated ?? 0)))
       .attr('fill', '#f06d06')
-      .attr('opacity', 0.5);
+      .attr('opacity', 0.);
   }
 
+}
+
+interface TransactionPieDatum {
+  transactionType: 'donated' | 'received';
+  amount: number; // determined pie angle
+  total: number; // total of both donated + received (determines radius)
 }
