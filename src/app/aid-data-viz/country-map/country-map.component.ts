@@ -9,7 +9,7 @@ import {
   signal,
   viewChild
 } from '@angular/core';
-import { AidDataStore } from "../aid-data.store";
+import { AidDataAggregate, AidDataStore } from "../aid-data.store";
 import { ResizeDirective } from "../../shared/directives/resize.directive";
 import {
   arc,
@@ -21,7 +21,7 @@ import {
   scaleOrdinal,
   schemeRdBu,
   select,
-  selectAll
+  selectAll, Selection
 } from "d3";
 import { Feature, FeatureCollection } from "geojson";
 
@@ -110,13 +110,34 @@ export class CountryMapComponent implements AfterViewInit {
           data: dataByCountry.get(d.properties!['name'])!,
         };
       });
+    this.drawSymbols(this.countriesGroup(), symbolMapData);
+  }
+
+  private drawOrganizations(): void {
+    const organizations = this.aidDataStore.organizations();
+    const dataByOrg = this.aidDataStore.dataByCountryOrOrg();
+    const width = this.dimensions().width;
+    const circleBoxWidth = this.maxCircleRadius * 2 + 2;
+    const circlesPerRow = Math.floor(width / (circleBoxWidth));
+    const symbolOrgData: SymbolDatum[] = organizations.map((org, i) => {
+      const x = (i % circlesPerRow) * (circleBoxWidth) + (circleBoxWidth / 2);
+      const y = Math.floor(i / circlesPerRow) * (circleBoxWidth);
+      return {
+        centroid: [x, y],
+        data: dataByOrg.get(org)!
+      };
+    });
+    this.drawSymbols(this.organizationsGroup(), symbolOrgData);
+  }
+
+  private drawSymbols(group: Selection<SVGGElement, unknown, HTMLElement, unknown>, data: SymbolDatum[]) {
     const pieGenerator = pie<TransactionPieDatum>()
       .value(d => d.amount)
       .sort((a, b) => a.transactionType.localeCompare(b.transactionType));
 
-    const symbolGroups = this.countriesGroup()
+    const symbolGroups = group
       .selectAll('.symbol')
-      .data(symbolMapData)
+      .data(data) // TODO: add key
       .join('g')
       .attr('class', 'symbol')
       .attr('transform', d => `translate(${d.centroid.join(',')})`);
@@ -142,30 +163,11 @@ export class CountryMapComponent implements AfterViewInit {
         );
       })
       .join('path')
-      .attr('class', 'symbol')
       .attr('d', d => {
         return this.arcGenerator.outerRadius(this.radiusScale()(d.data.total))(d);
       })
       .attr('fill', d => this.colorScale(d.data.transactionType))
       .attr('opacity', 0.7);
-  }
-
-  private drawOrganizations(): void {
-    const organizations = this.aidDataStore.organizations();
-    const orgDataMap = this.aidDataStore.dataByCountryOrOrg();
-    const width = this.dimensions().width;
-    const circleBoxWidth = this.maxCircleRadius * 2 + 2;
-    const circlesPerRow = Math.floor(width / (circleBoxWidth));
-    this.organizationsGroup()
-      .selectAll('circle')
-      .data(organizations)
-      .join('circle')
-      .attr('class', 'organization')
-      .attr('cx', (_, i) => (i % circlesPerRow) * (circleBoxWidth) + (circleBoxWidth / 2))
-      .attr('cy', (_, i) => Math.floor(i / circlesPerRow) * (circleBoxWidth))
-      .attr('r', d => this.radiusScale()((orgDataMap.get(d)?.totalReceived ?? 0) + (orgDataMap.get(d)?.totalDonated ?? 0)))
-      .attr('fill', '#f06d06')
-      .attr('opacity', 0.);
   }
 
 }
@@ -174,4 +176,9 @@ interface TransactionPieDatum {
   transactionType: 'donated' | 'received';
   amount: number; // determined pie angle
   total: number; // total of both donated + received (determines radius)
+}
+
+interface SymbolDatum {
+  centroid: [number, number];
+  data: AidDataAggregate;
 }
