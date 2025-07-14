@@ -17,11 +17,12 @@ import {
   geoPath,
   pie,
   PieArcDatum,
-  scaleLog,
+  scaleLinear,
   scaleOrdinal,
   schemeRdBu,
   select,
-  selectAll, Selection
+  selectAll,
+  Selection
 } from "d3";
 import { Feature, FeatureCollection } from "geojson";
 
@@ -51,12 +52,12 @@ export class CountryMapComponent implements AfterViewInit {
     }
     return projection;
   });
-  private maxCircleRadius = 10;
+  private maxCircleRadius = 14;
   private readonly pathGenerator = computed(() => geoPath(this.projection()));
   private readonly radiusScale = computed(() => {
     const transactionsMap = this.aidDataStore.dataByCountryOrOrg();
     const amounts = [...transactionsMap.values()].map(t => t.totalReceived + t.totalDonated);
-    return scaleLog([Math.min(...amounts), Math.max(...amounts)], [1, this.maxCircleRadius]);
+    return scaleLinear([Math.min(...amounts), Math.max(...amounts)], [3, this.maxCircleRadius]);
   });
   private readonly colorScale = scaleOrdinal(['received', 'donated'], [schemeRdBu[3][0], schemeRdBu[3][2]]);
   private readonly arcGenerator = arc<PieArcDatum<TransactionPieDatum>>()
@@ -83,7 +84,7 @@ export class CountryMapComponent implements AfterViewInit {
       this.drawOrganizations();
 
       const organizationsHeight = this.organizationsGroup().node()?.getBoundingClientRect().height ?? 0;
-      const totalHeight = mapHeight + organizationsHeight + 16; // 16 extra for padding
+      const totalHeight = mapHeight + organizationsHeight + 36; // extra for padding
       this.svgHeight.set(totalHeight);
     }, { injector: this.injector })
   }
