@@ -25,10 +25,15 @@ import {
   Selection
 } from "d3";
 import { Feature, FeatureCollection } from "geojson";
+import { TooltipComponent } from "../../shared/components/tooltip/tooltip.component";
+import { CurrencyPipe } from "@angular/common";
 
 @Component({
   selector: 'app-country-map',
-  imports: [],
+  imports: [
+    TooltipComponent,
+    CurrencyPipe
+  ],
   templateUrl: './country-map.component.html',
   hostDirectives: [ResizeDirective],
   styleUrl: './country-map.component.scss'
@@ -52,7 +57,8 @@ export class CountryMapComponent implements AfterViewInit {
     }
     return projection;
   });
-  private maxCircleRadius = 14;
+  private readonly maxCircleRadius = 14;
+  private readonly defaultOpacity = 0.7;
   private readonly pathGenerator = computed(() => geoPath(this.projection()));
   private readonly radiusScale = computed(() => {
     const transactionsMap = this.aidDataStore.dataByCountryOrOrg();
@@ -64,6 +70,9 @@ export class CountryMapComponent implements AfterViewInit {
     .innerRadius(0)
     .outerRadius(this.maxCircleRadius);
 
+  protected readonly host = inject(ElementRef<HTMLElement>);
+  protected hoveredCountry= signal<SymbolDatum | null>(null);
+  protected readonly tooltipEvent = signal<Event | null>(null);
 
   ngAfterViewInit(): void {
     this.initializeDrawing();
@@ -82,6 +91,7 @@ export class CountryMapComponent implements AfterViewInit {
       this.organizationsGroup()
         .attr('transform', `translate(0, ${mapHeight + this.maxCircleRadius * 2})`);
       this.drawOrganizations();
+      this.handleSymbolHover();
 
       const organizationsHeight = this.organizationsGroup().node()?.getBoundingClientRect().height ?? 0;
       const totalHeight = mapHeight + organizationsHeight + 36; // extra for padding
@@ -141,7 +151,8 @@ export class CountryMapComponent implements AfterViewInit {
       .data(data) // TODO: add key
       .join('g')
       .attr('class', 'symbol')
-      .attr('transform', d => `translate(${d.centroid.join(',')})`);
+      .attr('transform', d => `translate(${d.centroid.join(',')})`)
+      .attr('opacity', this.defaultOpacity);
     symbolGroups
       .selectAll('path')
       .data(d => {
@@ -168,7 +179,24 @@ export class CountryMapComponent implements AfterViewInit {
         return this.arcGenerator.outerRadius(this.radiusScale()(d.data.total))(d);
       })
       .attr('fill', d => this.colorScale(d.data.transactionType))
-      .attr('opacity', 0.7);
+  }
+
+  private handleSymbolHover(): void {
+    const component = this;
+    this.svg().selectAll<SVGPathElement, SymbolDatum>('.symbol')
+      .on('mouseover', function (event: Event, d) {
+        select(this).attr('opacity', 1);
+        component.tooltipEvent.set(event);
+        component.hoveredCountry.set(d);
+      })
+      .on('mousemove', (e) => {
+        this.tooltipEvent.set(e);
+      })
+      .on('mouseout', function () {
+        select(this).attr('opacity', component.defaultOpacity);
+        component.tooltipEvent.set(null);
+        component.hoveredCountry.set(null);
+      })
   }
 
 }

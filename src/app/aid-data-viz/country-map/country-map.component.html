@@ -2,3 +2,8 @@
   <g #countriesGroup class="countries"></g>
   <g #organizationsGroup class="organizations"></g>
 </svg>
+<app-tooltip [triggerEvent]="tooltipEvent()" [target]="host.nativeElement">
+  <ng-container tooltip-header>{{ hoveredCountry()?.data?.name }}</ng-container>
+  <div>Donated: {{ hoveredCountry()?.data?.totalDonated | currency }}</div>
+  <div>Received: {{ hoveredCountry()?.data?.totalReceived | currency }}</div>
+</app-tooltip>
