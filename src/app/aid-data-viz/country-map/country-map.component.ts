@@ -44,9 +44,11 @@ export class CountryMapComponent implements AfterViewInit {
   private readonly svgRef = viewChild.required<ElementRef>('chart')
   private readonly countriesGroupRef = viewChild.required<ElementRef>('countriesGroup');
   private readonly organizationsGroupRef = viewChild.required<ElementRef>('organizationsGroup');
+  private readonly transactionLinesRef = viewChild.required<ElementRef>('transactionLines');
   private readonly svg = computed(() => select<SVGSVGElement, unknown>(this.svgRef().nativeElement));
   private readonly countriesGroup = computed(() => select<SVGGElement, unknown>(this.countriesGroupRef().nativeElement));
   private readonly organizationsGroup = computed(() => select<SVGGElement, unknown>(this.organizationsGroupRef().nativeElement));
+  private readonly transactionLinesGroup = computed(() => select<SVGGElement, unknown>(this.transactionLinesRef().nativeElement));
   protected readonly dimensions = inject(ResizeDirective).dimensions;
   protected readonly svgHeight = signal(0);
   private readonly projection = computed(() => {
@@ -91,7 +93,7 @@ export class CountryMapComponent implements AfterViewInit {
       this.organizationsGroup()
         .attr('transform', `translate(0, ${mapHeight + this.maxCircleRadius * 2})`);
       this.drawOrganizations();
-      this.handleSymbolHover();
+      this.handleSymbolInteractivity();
 
       const organizationsHeight = this.organizationsGroup().node()?.getBoundingClientRect().height ?? 0;
       const totalHeight = mapHeight + organizationsHeight + 36; // extra for padding
@@ -181,7 +183,7 @@ export class CountryMapComponent implements AfterViewInit {
       .attr('fill', d => this.colorScale(d.data.transactionType))
   }
 
-  private handleSymbolHover(): void {
+  private handleSymbolInteractivity(): void {
     const component = this;
     this.svg().selectAll<SVGPathElement, SymbolDatum>('.symbol')
       .on('mouseover', function (event: Event, d) {
@@ -197,6 +199,59 @@ export class CountryMapComponent implements AfterViewInit {
         component.tooltipEvent.set(null);
         component.hoveredCountry.set(null);
       })
+      .on('click', (_, d) => this.drawTransactionLines(d));
+  }
+
+  private drawTransactionLines(datum: SymbolDatum): void {
+    const donatedTo = [...new Set(datum.data.transactions
+      .filter(d => d.donor === datum.data.name)
+      .map(d => d.recipient)
+    )];
+    const receivedFrom = [...new Set(
+      datum.data.transactions
+        .filter(d => d.recipient === datum.data.name)
+        .map(d => d.donor)
+    )];
+    // this offset is necessary because the organization circles are in a group that is translated down
+    const orgGroupOffset = this.organizationsGroup().node()?.transform.baseVal.consolidate()?.matrix.f ?? 0;
+    const organizationSet = new Set(this.aidDataStore.organizations());
+    const symbolCentroids = this.svg().selectAll<SVGGElement, SymbolDatum>('.symbol').data()
+      .reduce((acc, curr) => {
+        acc.set(curr.data.name, curr);
+        return acc;
+      }, new Map<string, SymbolDatum>);
+    const adjustOffset = (symbolName: string, y: number) => y + (organizationSet.has(symbolName) ? orgGroupOffset : 0)
+
+    this.transactionLinesGroup()
+      .selectAll<SVGLineElement, SymbolDatum>('.donated-line')
+      .data(donatedTo)
+      .join('line')
+      .attr('class', 'donated-line')
+      .attr('x1', () => datum.centroid[0])
+      .attr('y1', () => adjustOffset(datum.data.name, datum.centroid[1]))
+      .attr('x2', () => datum.centroid[0])
+      .attr('y2', () => adjustOffset(datum.data.name, datum.centroid[1]))
+      .transition()
+      .duration(1000)
+      .attr('x2', d => symbolCentroids.get(d)!.centroid[0])
+      .attr('y2', d => adjustOffset(d, symbolCentroids.get(d)!.centroid[1]))
+      .attr('stroke', this.colorScale('donated'))
+      .attr('stroke-width', '0.012rem');
+    this.transactionLinesGroup()
+      .selectAll<SVGLineElement, SymbolDatum>('.received-line')
+      .data(receivedFrom)
+      .join('line')
+      .attr('class', 'received-line')
+      .attr('x1', d => symbolCentroids.get(d)!.centroid[0])
+      .attr('y1', d => adjustOffset(d, symbolCentroids.get(d)!.centroid[1]))
+      .attr('x2', d => symbolCentroids.get(d)!.centroid[0])
+      .attr('y2', d => adjustOffset(d, symbolCentroids.get(d)!.centroid[1]))
+      .transition()
+      .duration(1000)
+      .attr('x2', () => datum.centroid[0])
+      .attr('y2', () => adjustOffset(datum.data.name, datum.centroid[1]))
+      .attr('stroke', this.colorScale('received'))
+      .attr('stroke-width', '0.012rem');
   }
 
 }
