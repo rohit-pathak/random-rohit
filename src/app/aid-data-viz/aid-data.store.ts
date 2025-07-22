@@ -77,6 +77,19 @@ export class AidDataStore {
     return nameDataMap;
   });
 
+  transactionsPerYear = computed<YearTotal[]>(() => {
+    const data = this.data();
+    const perYear = new Map<number, YearTotal>();
+    data.forEach(d => {
+      const yearTotal: YearTotal = perYear.get(d.year) ?? { year: d.year, amount: 0};
+      yearTotal.amount += d.amount;
+      perYear.set(d.year, yearTotal);
+    });
+    return [...perYear.values()]
+      .filter(d => d.year !== 9999)
+      .sort((a, b) => a.year - b.year);
+  });
+
   // methods
   readonly loadMap = rxMethod<void>(
     pipe(
@@ -122,4 +135,9 @@ export interface AidDataAggregate {
   totalDonated: number;
   totalReceived: number;
   transactions: AidTransaction[];
+}
+
+export interface YearTotal {
+  year: number;
+  amount: number;
 }
