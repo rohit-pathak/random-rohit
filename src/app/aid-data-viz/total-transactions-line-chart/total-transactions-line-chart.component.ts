@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, computed, effect, ElementRef, inject, Injector, viewChild } from '@angular/core';
-import { axisBottom, line, max, min, scaleLinear, select } from "d3";
+import { axisBottom, line, max, min, scaleLinear, scaleLog, select } from "d3";
 import { AidDataStore, YearTotal } from "../aid-data.store";
 import { ResizeDirective } from "../../shared/directives/resize.directive";
 
@@ -32,7 +32,8 @@ export class TotalTransactionsLineChartComponent implements AfterViewInit {
   })
   private readonly yScale = computed(() => {
     const data = this.aidDataStore.transactionsPerYear();
-    return scaleLinear([0, max(data.map(d => d.amount)) ?? 0], [this.height, 0]);
+    const amounts = data.map(d => d.amount);
+    return scaleLog([min(amounts) ?? 0, max(amounts ?? 0) ?? 0], [this.height, 0]);
   })
   private readonly lineGenerator = computed(() => {
     return line<YearTotal>()
