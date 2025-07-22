@@ -116,7 +116,7 @@ export class CountryMapComponent implements AfterViewInit {
     const dataByCountry = this.aidDataStore.dataByCountryOrOrg();
     const symbolMapData = selectAll<SVGPathElement, Feature>('path')
       .data()
-      .filter(d => dataByCountry.has(d.properties?.['name']))
+      .filter(d => dataByCountry.has(d?.properties?.['name']))
       .map(d => {
         return {
           centroid: this.pathGenerator().centroid(d),
