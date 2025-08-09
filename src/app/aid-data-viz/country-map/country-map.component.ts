@@ -132,7 +132,10 @@ export class CountryMapComponent implements AfterViewInit {
     const width = this.dimensions().width;
     const circleBoxWidth = this.maxCircleRadius * 2 + 2;
     const circlesPerRow = Math.floor(width / (circleBoxWidth));
-    const symbolOrgData: SymbolDatum[] = organizations.map((org, i) => {
+    const symbolOrgData: SymbolDatum[] = organizations
+      .filter(org => dataByOrg.has(org))
+      .map((org, i) => {
+      // TODO: check calculation because this is sometimes [Nan, Infinity]
       const x = (i % circlesPerRow) * (circleBoxWidth) + (circleBoxWidth / 2);
       const y = Math.floor(i / circlesPerRow) * (circleBoxWidth);
       return {
@@ -149,11 +152,11 @@ export class CountryMapComponent implements AfterViewInit {
       .sort((a, b) => a.transactionType.localeCompare(b.transactionType));
 
     const symbolGroups = group
-      .selectAll('.symbol')
-      .data(data) // TODO: add key
+      .selectAll<SVGGElement, SymbolDatum>('.symbol')
+      .data(data, d => d.data.name)
       .join('g')
       .attr('class', 'symbol')
-      .attr('transform', d => `translate(${d.centroid.join(',')})`)
+      .attr('transform', d => `translate(${d.centroid.join(',')})`) // TODO: check if centroid vals are defined
       .attr('opacity', this.defaultOpacity);
     symbolGroups
       .selectAll('path')

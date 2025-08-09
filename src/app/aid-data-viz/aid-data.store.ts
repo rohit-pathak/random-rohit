@@ -12,6 +12,7 @@ interface AidDataState {
   error: string | null;
   countriesGeoJson: FeatureCollection | null;
   data: AidTransaction[];
+  selectedYearRange: [number, number] | null;
 }
 
 @Injectable()
@@ -23,6 +24,7 @@ export class AidDataStore {
     error: null,
     data: [],
     countriesGeoJson: null,
+    selectedYearRange: null,
   });
 
   // state properties
@@ -50,8 +52,17 @@ export class AidDataStore {
     return [...countrySet.values()].filter(c => !this.mapCountries().has(c));
   });
 
+  readonly dataInYearRange = computed(() => {
+    const selectedYearRange = this.state.selectedYearRange();
+    if (!selectedYearRange) {
+      return this.state.data();
+    }
+    const [begin, end] = selectedYearRange;
+    return this.state.data().filter(d => d.year >= begin && d.year <= end);
+  })
+
   readonly dataByCountryOrOrg = computed<Map<string, AidDataAggregate>>(() => {
-    const data = this.data();
+    const data = this.dataInYearRange();
     const nameDataMap = new Map<string, AidDataAggregate>();
     for (const transaction of data) {
       const donorEntry = nameDataMap.get(transaction.donor) ?? {
@@ -77,7 +88,7 @@ export class AidDataStore {
     return nameDataMap;
   });
 
-  transactionsPerYear = computed<YearTotal[]>(() => {
+  readonly transactionsPerYear = computed<YearTotal[]>(() => {
     const data = this.data();
     const perYear = new Map<number, YearTotal>();
     data.forEach(d => {
@@ -126,6 +137,8 @@ export class AidDataStore {
       })
     )
   );
+
+  readonly setYearRange = (selectedYearRange: [number, number] | null) => patchState(this.state, { selectedYearRange });
 
 }
 

@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, computed, effect, ElementRef, inject, Injector, viewChild } from '@angular/core';
-import { axisBottom, line, max, min, scaleLinear, scaleLog, select } from "d3";
+import { axisBottom, brushX, D3BrushEvent, line, max, min, scaleLinear, scaleLog, select } from "d3";
 import { AidDataStore, YearTotal } from "../aid-data.store";
 import { ResizeDirective } from "../../shared/directives/resize.directive";
 
@@ -41,6 +41,7 @@ export class TotalTransactionsLineChartComponent implements AfterViewInit {
       .y(d => this.yScale()(d.amount) ?? 0);
   });
   private readonly xAxisGenerator = computed(() => axisBottom(this.xScale()));
+  private readonly chartBrush = brushX().on('end', (e) => this.handleBrush(e));
 
   protected readonly axisTransform = computed(() => `translate(0, ${this.height})`);
 
@@ -57,13 +58,12 @@ export class TotalTransactionsLineChartComponent implements AfterViewInit {
       }
       this.drawLineChart();
       this.drawXAxis();
+      this.addBrush();
     }, {injector: this.injector});
   }
 
   private drawLineChart(): void {
     const data = this.aidDataStore.transactionsPerYear();
-    console.log(data);
-    console.log(this.lineGenerator()(data));
     this.lineGroup()
       .selectAll('path')
       .data([data])
@@ -75,6 +75,26 @@ export class TotalTransactionsLineChartComponent implements AfterViewInit {
 
   private drawXAxis(): void {
     this.xAxisGroup().call(this.xAxisGenerator());
+  }
+
+  private addBrush(): void {
+    if (!this.lineGroup().select('.overlay').empty()) {
+      this.lineGroup().call(this.chartBrush.move, null);
+    }
+    // TODO: check why after resize the brush area is not correct
+    this.lineGroup().call(this.chartBrush);
+  }
+
+  private handleBrush(e: D3BrushEvent<unknown>): void {
+    if (!e.selection) {
+      this.aidDataStore.setYearRange(null);
+      return;
+    }
+    const [x1, x2] = e.selection as [number, number];
+    const selectedYears = this.aidDataStore.transactionsPerYear()
+      .map(t => t.year)
+      .filter(year => this.xScale()(year) >= x1 && this.xScale()(year) <= x2);
+    this.aidDataStore.setYearRange([selectedYears[0], selectedYears[1]]);
   }
 
 }
