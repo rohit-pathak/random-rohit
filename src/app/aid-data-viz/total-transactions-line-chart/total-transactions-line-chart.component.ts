@@ -41,7 +41,7 @@ export class TotalTransactionsLineChartComponent implements AfterViewInit {
       .y(d => this.yScale()(d.amount) ?? 0);
   });
   private readonly xAxisGenerator = computed(() => axisBottom(this.xScale()));
-  private readonly chartBrush = brushX().on('brush', (e) => this.handleBrush(e));
+  private readonly chartBrush = brushX().on('brush end', (e) => this.handleBrush(e));
 
   protected readonly axisTransform = computed(() => `translate(0, ${this.height})`);
 
@@ -96,7 +96,10 @@ export class TotalTransactionsLineChartComponent implements AfterViewInit {
       .filter(year => (this.xScale()(year) >= x1) && (this.xScale()(year) <= x2));
     if (!selectedYears.length) {
       this.aidDataStore.setYearRange(null);
-      this.lineGroup().call(this.chartBrush.move, null);
+      if (e.type === 'end') {
+        this.lineGroup().call(this.chartBrush.move, null);
+      }
+      return;
     }
     this.aidDataStore.setYearRange([selectedYears[0], selectedYears.at(-1)!]);
   }
