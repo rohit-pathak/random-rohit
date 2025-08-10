@@ -143,7 +143,14 @@ export class AidDataStore {
   );
 
   readonly setYearRange = (selectedYearRange: [number, number] | null) => patchState(this.state, { selectedYearRange });
-  readonly setSelectedSymbolDatum = (selected: string | null) => patchState(this.state, {selectedEntity: selected});
+  readonly setSelectedSymbolDatum = (selected: string | null) => {
+    patchState(this.state, (state) => {
+      if (state.selectedEntity === selected) {
+        return { selectedEntity: null };
+      }
+      return {selectedEntity: selected};
+    });
+  }
 }
 
 
