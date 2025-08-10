@@ -93,8 +93,12 @@ export class TotalTransactionsLineChartComponent implements AfterViewInit {
     const [x1, x2] = e.selection as [number, number];
     const selectedYears = this.aidDataStore.transactionsPerYear()
       .map(t => t.year)
-      .filter(year => this.xScale()(year) >= x1 && this.xScale()(year) <= x2);
-    this.aidDataStore.setYearRange([selectedYears[0], selectedYears[1]]);
+      .filter(year => (this.xScale()(year) >= x1) && (this.xScale()(year) <= x2));
+    if (!selectedYears.length) {
+      this.aidDataStore.setYearRange(null);
+      this.lineGroup().call(this.chartBrush.move, null);
+    }
+    this.aidDataStore.setYearRange([selectedYears[0], selectedYears.at(-1)!]);
   }
 
 }
