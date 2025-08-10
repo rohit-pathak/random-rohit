@@ -12,6 +12,7 @@ interface AidDataState {
   error: string | null;
   countriesGeoJson: FeatureCollection | null;
   data: AidTransaction[];
+  selectedEntity: string | null;
   selectedYearRange: [number, number] | null;
 }
 
@@ -24,6 +25,7 @@ export class AidDataStore {
     error: null,
     data: [],
     countriesGeoJson: null,
+    selectedEntity: null,
     selectedYearRange: null,
   });
 
@@ -33,6 +35,8 @@ export class AidDataStore {
   readonly error = this.state.error;
   readonly data = this.state.data;
   readonly countriesGeoJson = this.state.countriesGeoJson;
+  readonly selectedEntity = this.state.selectedEntity;
+  readonly selectedYearRange = this.state.selectedYearRange;
 
   // computed properties
   readonly mapCountries = computed<Set<string>>(() => {
@@ -139,7 +143,7 @@ export class AidDataStore {
   );
 
   readonly setYearRange = (selectedYearRange: [number, number] | null) => patchState(this.state, { selectedYearRange });
-
+  readonly setSelectedSymbolDatum = (selected: string | null) => patchState(this.state, {selectedEntity: selected});
 }
 
 

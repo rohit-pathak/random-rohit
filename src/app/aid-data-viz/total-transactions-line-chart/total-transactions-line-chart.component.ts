@@ -41,7 +41,7 @@ export class TotalTransactionsLineChartComponent implements AfterViewInit {
       .y(d => this.yScale()(d.amount) ?? 0);
   });
   private readonly xAxisGenerator = computed(() => axisBottom(this.xScale()));
-  private readonly chartBrush = brushX().on('end', (e) => this.handleBrush(e));
+  private readonly chartBrush = brushX().on('brush', (e) => this.handleBrush(e));
 
   protected readonly axisTransform = computed(() => `translate(0, ${this.height})`);
 

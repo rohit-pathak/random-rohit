@@ -21,12 +21,12 @@ import {
   scaleOrdinal,
   schemeRdBu,
   select,
-  selectAll,
   Selection
 } from "d3";
 import { Feature, FeatureCollection } from "geojson";
 import { TooltipComponent } from "../../shared/components/tooltip/tooltip.component";
 import { CurrencyPipe } from "@angular/common";
+import { AidTransaction } from "../aid-data.service";
 
 @Component({
   selector: 'app-country-map',
@@ -72,8 +72,47 @@ export class CountryMapComponent implements AfterViewInit {
     .innerRadius(0)
     .outerRadius(this.maxCircleRadius);
 
+  private readonly symbolCountryData = computed<SymbolDatum[]>(() => {
+    const dataByCountry = this.aidDataStore.dataByCountryOrOrg();
+    const data = this.countriesGroup().selectAll<SVGPathElement, Feature>('path')
+      .data()
+      .filter(d => dataByCountry.has(d?.properties?.['name']))
+      .map(d => {
+        return {
+          centroid: this.pathGenerator().centroid(d),
+          data: dataByCountry.get(d.properties!['name'])!,
+        };
+      });
+    return data;
+  });
+  private readonly symbolOrgData = computed<SymbolDatum[]>(() => {
+    const organizations = this.aidDataStore.organizations();
+    const dataByOrg = this.aidDataStore.dataByCountryOrOrg();
+    const width = this.dimensions().width;
+    const circleBoxWidth = this.maxCircleRadius * 2 + 2;
+    const circlesPerRow = Math.floor(width / (circleBoxWidth));
+    const data: SymbolDatum[] = organizations
+      .filter(org => dataByOrg.has(org))
+      .map((org, i) => {
+        // TODO: check calculation because this is sometimes [Nan, Infinity]
+        const x = (i % circlesPerRow) * (circleBoxWidth) + (circleBoxWidth / 2);
+        const y = Math.floor(i / circlesPerRow) * (circleBoxWidth);
+        return {
+          centroid: [x, y],
+          data: dataByOrg.get(org)!
+        };
+      });
+    return data;
+  });
+  private readonly symbolMap = computed<Map<string, SymbolDatum>>(() => {
+    const res = new Map<string, SymbolDatum>();
+    this.symbolCountryData().forEach(d => res.set(d.data.name, d));
+    this.symbolOrgData().forEach(d => res.set(d.data.name, d));
+    return res;
+  });
+
   protected readonly host = inject(ElementRef<HTMLElement>);
-  protected hoveredCountry= signal<SymbolDatum | null>(null);
+  protected readonly hoveredCountry = signal<SymbolDatum | null>(null);
   protected readonly tooltipEvent = signal<Event | null>(null);
 
   ngAfterViewInit(): void {
@@ -93,10 +132,11 @@ export class CountryMapComponent implements AfterViewInit {
       this.organizationsGroup()
         .attr('transform', `translate(0, ${mapHeight + this.maxCircleRadius * 2})`);
       this.drawOrganizations();
+      this.drawTransactionLines();
       this.handleSymbolInteractivity();
 
       const organizationsHeight = this.organizationsGroup().node()?.getBoundingClientRect().height ?? 0;
-      const totalHeight = mapHeight + organizationsHeight + 36; // extra for padding
+      const totalHeight = Math.max(this.svgHeight(), mapHeight + organizationsHeight + 36); // extra for padding
       this.svgHeight.set(totalHeight);
     }, { injector: this.injector })
   }
@@ -113,37 +153,11 @@ export class CountryMapComponent implements AfterViewInit {
   }
 
   private drawSymbolsOnMap(): void {
-    const dataByCountry = this.aidDataStore.dataByCountryOrOrg();
-    const symbolMapData = selectAll<SVGPathElement, Feature>('path')
-      .data()
-      .filter(d => dataByCountry.has(d?.properties?.['name']))
-      .map(d => {
-        return {
-          centroid: this.pathGenerator().centroid(d),
-          data: dataByCountry.get(d.properties!['name'])!,
-        };
-      });
-    this.drawSymbols(this.countriesGroup(), symbolMapData);
+    this.drawSymbols(this.countriesGroup(), this.symbolCountryData());
   }
 
   private drawOrganizations(): void {
-    const organizations = this.aidDataStore.organizations();
-    const dataByOrg = this.aidDataStore.dataByCountryOrOrg();
-    const width = this.dimensions().width;
-    const circleBoxWidth = this.maxCircleRadius * 2 + 2;
-    const circlesPerRow = Math.floor(width / (circleBoxWidth));
-    const symbolOrgData: SymbolDatum[] = organizations
-      .filter(org => dataByOrg.has(org))
-      .map((org, i) => {
-      // TODO: check calculation because this is sometimes [Nan, Infinity]
-      const x = (i % circlesPerRow) * (circleBoxWidth) + (circleBoxWidth / 2);
-      const y = Math.floor(i / circlesPerRow) * (circleBoxWidth);
-      return {
-        centroid: [x, y],
-        data: dataByOrg.get(org)!
-      };
-    });
-    this.drawSymbols(this.organizationsGroup(), symbolOrgData);
+    this.drawSymbols(this.organizationsGroup(), this.symbolOrgData());
   }
 
   private drawSymbols(group: Selection<SVGGElement, unknown, HTMLElement, unknown>, data: SymbolDatum[]) {
@@ -202,17 +216,27 @@ export class CountryMapComponent implements AfterViewInit {
         component.tooltipEvent.set(null);
         component.hoveredCountry.set(null);
       })
-      .on('click', (_, d) => this.drawTransactionLines(d));
+      .on('click', (_, d) => {
+        this.aidDataStore.setSelectedSymbolDatum(d.data.name);
+      });
   }
 
-  private drawTransactionLines(datum: SymbolDatum): void {
+  private drawTransactionLines(): void {
+    const datum = this.symbolMap().get(this.aidDataStore.selectedEntity() ?? '');
+    if (!datum) {
+      this.transactionLinesGroup().selectAll('.donated-line, .received-line').remove();
+      return;
+    }
+    const yearRange = this.aidDataStore.selectedYearRange();
+    const inRange = (t: AidTransaction) => !yearRange ? true : t.year >= yearRange[0] && t.year <= yearRange[1];
+
     const donatedTo = [...new Set(datum.data.transactions
-      .filter(d => d.donor === datum.data.name)
+      .filter(d => (d.donor === datum.data.name) && inRange(d))
       .map(d => d.recipient)
     )];
     const receivedFrom = [...new Set(
       datum.data.transactions
-        .filter(d => d.recipient === datum.data.name)
+        .filter(d => (d.recipient === datum.data.name) && inRange(d))
         .map(d => d.donor)
     )];
     // this offset is necessary because the organization circles are in a group that is translated down
@@ -235,12 +259,12 @@ export class CountryMapComponent implements AfterViewInit {
       .attr('x2', () => datum.centroid[0])
       .attr('y2', () => adjustOffset(datum.data.name, datum.centroid[1]))
       .style('pointer-events', 'none')
-      .transition()
-      .duration(1000)
+      // .transition()
+      // .duration(1000)
       .attr('x2', d => symbolCentroids.get(d)!.centroid[0])
       .attr('y2', d => adjustOffset(d, symbolCentroids.get(d)!.centroid[1]))
       .attr('stroke', this.colorScale('donated'))
-      .attr('stroke-width', '0.012rem');
+      .attr('stroke-width', '0.02rem');
     this.transactionLinesGroup()
       .selectAll<SVGLineElement, SymbolDatum>('.received-line')
       .data(receivedFrom)
@@ -251,12 +275,12 @@ export class CountryMapComponent implements AfterViewInit {
       .attr('x2', d => symbolCentroids.get(d)!.centroid[0])
       .attr('y2', d => adjustOffset(d, symbolCentroids.get(d)!.centroid[1]))
       .style('pointer-events', 'none')
-      .transition()
-      .duration(1000)
+      // .transition()
+      // .duration(1000)
       .attr('x2', () => datum.centroid[0])
       .attr('y2', () => adjustOffset(datum.data.name, datum.centroid[1]))
       .attr('stroke', this.colorScale('received'))
-      .attr('stroke-width', '0.012rem');
+      .attr('stroke-width', '0.02rem');
   }
 
 }
