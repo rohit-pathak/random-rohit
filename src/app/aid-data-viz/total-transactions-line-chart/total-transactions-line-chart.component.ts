@@ -21,10 +21,10 @@ export class TotalTransactionsLineChartComponent implements AfterViewInit {
   private readonly resize = inject(ResizeDirective);
   private readonly aidDataStore = inject(AidDataStore);
 
-  private readonly padding = 20;
+  private readonly padding = {top: 5, bottom: 20};
   protected readonly totalHeight = 100;
   protected readonly dimensions= this.resize.dimensions;
-  protected readonly height = this.totalHeight - this.padding;
+  protected readonly height = this.totalHeight - this.padding.top - this.padding.bottom;
   private readonly xScale = computed(() => {
     const data = this.aidDataStore.transactionsPerYear();
     const width = this.dimensions().width;
@@ -33,7 +33,7 @@ export class TotalTransactionsLineChartComponent implements AfterViewInit {
   private readonly yScale = computed(() => {
     const data = this.aidDataStore.transactionsPerYear();
     const amounts = data.map(d => d.amount);
-    return scaleLog([min(amounts) ?? 0, max(amounts ?? 0) ?? 0], [this.height, 0]);
+    return scaleLog([min(amounts) ?? 0, max(amounts ?? 0) ?? 0], [this.height, this.padding.top]);
   })
   private readonly lineGenerator = computed(() => {
     return line<YearTotal>()
@@ -43,7 +43,7 @@ export class TotalTransactionsLineChartComponent implements AfterViewInit {
   private readonly xAxisGenerator = computed(() => axisBottom(this.xScale()));
   private readonly chartBrush = brushX().on('brush end', (e) => this.handleBrush(e));
 
-  protected readonly axisTransform = computed(() => `translate(0, ${this.height})`);
+  protected readonly axisTransform = computed(() => `translate(0, ${this.padding.top + this.height})`);
 
   public ngAfterViewInit(): void {
     this.initializeDrawing();
