@@ -2,6 +2,8 @@
 
 @if (selectedEntityName) {
   <h2>{{ selectedEntityName }}</h2>
+  <app-received-donated-multiline />
+  <app-transactions-grouped />
 } @else {
-  <p>Click on a country or organization bubble to see more details here.</p>
+  <p class="text-secondary">Click on a country or organization bubble to see more details here.</p>
 }
