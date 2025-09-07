@@ -35,7 +35,7 @@ export class TotalTransactionsLineChartComponent implements AfterViewInit {
     const data = this.aidDataStore.transactionsPerYear();
     const amounts = data.map(d => d.amount);
     return scaleLog([min(amounts) ?? 0, max(amounts ?? 0) ?? 0], [this.height, this.padding.top]);
-  })
+  });
   private readonly lineGenerator = computed(() => {
     return line<YearTotal>()
       .x(d => this.xScale()(d.year) ?? 0)

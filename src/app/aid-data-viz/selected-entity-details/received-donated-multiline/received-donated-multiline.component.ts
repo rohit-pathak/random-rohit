@@ -1,7 +1,7 @@
 import { AfterViewInit, Component, computed, effect, ElementRef, inject, Injector, viewChild } from '@angular/core';
-import { AidDataStore } from "../../aid-data.store";
+import { AidDataStore, YearTotal } from "../../aid-data.store";
 import { ResizeDirective } from "../../../shared/directives/resize.directive";
-import { axisBottom, scaleLinear, select } from "d3";
+import { axisBottom, line, max, min, scaleLinear, scaleLog, select } from "d3";
 
 @Component({
   selector: 'app-received-donated-multiline',
@@ -30,6 +30,15 @@ export class ReceivedDonatedMultilineComponent implements AfterViewInit {
     const [start, end] = this.store.totalYearRange();
     return scaleLinear([start, end], [0, width]);
   });
+  private readonly yScale = computed(() => {
+    const amounts = [...this.store.selectedReceivedPerYear(), ...this.store.selectedDonatedPerYear()].map(t => t.amount);
+    return scaleLog([min(amounts) ?? 0, max(amounts ?? 0) ?? 0], [this.height, this.padding.top]);
+  });
+  private readonly lineGenerator = computed(() => {
+    return line<YearTotal>()
+      .x(d => this.xScale()(d.year) ?? 0)
+      .y(d => this.yScale()(d.amount) ?? 0);
+  });
 
   private readonly xAxisGenerator = computed(() => axisBottom(this.xScale()));
   protected readonly axisTransform = `translate(0, ${this.padding.top + this.height})`;
@@ -46,9 +55,21 @@ export class ReceivedDonatedMultilineComponent implements AfterViewInit {
     if (!dimensions || !data) {
       return;
     }
-    // this.drawLineChart();
+    this.drawLineChart();
     this.drawXAxis();
     // this.addBrush();
+  }
+
+  private drawLineChart(): void {
+    const received = this.store.selectedReceivedPerYear();
+    const donated = this.store.selectedDonatedPerYear();
+    this.lineGroup()
+      .selectAll('path')
+      .data([received, donated])
+      .join('path')
+      .attr('d', d => this.lineGenerator()(d))
+      .attr('fill', 'none')
+      .attr('stroke', '#bbb');
   }
 
   private drawXAxis(): void {
