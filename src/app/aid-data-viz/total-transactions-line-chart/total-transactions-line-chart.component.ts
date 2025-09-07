@@ -28,6 +28,7 @@ export class TotalTransactionsLineChartComponent implements AfterViewInit {
   private readonly xScale = computed(() => {
     const data = this.aidDataStore.transactionsPerYear();
     const width = this.dimensions().width;
+    // TODO: use totalYearRange from store
     return scaleLinear([min(data.map(d => d.year)) ?? 0, max(data.map(d => d.year)) ?? 0], [0, width]);
   })
   private readonly yScale = computed(() => {
@@ -43,6 +44,7 @@ export class TotalTransactionsLineChartComponent implements AfterViewInit {
   private readonly xAxisGenerator = computed(() => axisBottom(this.xScale()));
   private readonly chartBrush = brushX().on('brush end', (e) => this.handleBrush(e));
 
+  // TODO: doesn't need to be computed
   protected readonly axisTransform = computed(() => `translate(0, ${this.padding.top + this.height})`);
 
   public ngAfterViewInit(): void {

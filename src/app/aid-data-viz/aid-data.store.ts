@@ -5,6 +5,7 @@ import { AidDataService, AidTransaction } from "./aid-data.service";
 import { computed, inject, Injectable } from "@angular/core";
 import { tapResponse } from "@ngrx/operators";
 import { FeatureCollection } from "geojson";
+import { max, min } from "d3";
 
 interface AidDataState {
   isLoading: boolean;
@@ -63,7 +64,7 @@ export class AidDataStore {
     }
     const [begin, end] = selectedYearRange;
     return this.state.data().filter(d => d.year >= begin && d.year <= end);
-  })
+  });
 
   readonly dataByCountryOrOrg = computed<Map<string, AidDataAggregate>>(() => {
     const data = this.dataInYearRange();
@@ -92,17 +93,41 @@ export class AidDataStore {
     return nameDataMap;
   });
 
+  readonly totalYearRange = computed<[number, number]>(() => {
+    const data = this.transactionsPerYear();
+    return [min(data.map(d => d.year)) ?? 0, max(data.map(d => d.year)) ?? 0] as [number, number];
+  });
+
+  readonly selectedEntityData = computed<AidDataAggregate | null>(() => {
+    const selected = this.selectedEntity();
+    const data = this.dataByCountryOrOrg().get(selected ?? '');
+    if (!selected || !data) {
+      return null;
+    }
+    return data;
+  });
+
+  readonly selectedReceivedPerYear = computed<YearTotal[]>(() => {
+    const selected = this.selectedEntityData();
+    if (!selected) {
+      return [];
+    }
+    const data = this.data().filter(t => t.recipient === selected.name);
+    return transactionsPerYear(data);
+  });
+
+  readonly selectedDonatedPerYear = computed<YearTotal[]>(() => {
+    const selected = this.selectedEntityData();
+    if (!selected) {
+      return [];
+    }
+    const data = this.data().filter(t => t.donor === selected.name);
+    return transactionsPerYear(data);
+  });
+
   readonly transactionsPerYear = computed<YearTotal[]>(() => {
     const data = this.data();
-    const perYear = new Map<number, YearTotal>();
-    data.forEach(d => {
-      const yearTotal: YearTotal = perYear.get(d.year) ?? { year: d.year, amount: 0};
-      yearTotal.amount += d.amount;
-      perYear.set(d.year, yearTotal);
-    });
-    return [...perYear.values()]
-      .filter(d => d.year !== 9999)
-      .sort((a, b) => a.year - b.year);
+    return transactionsPerYear(data);
   });
 
   // methods
@@ -148,9 +173,21 @@ export class AidDataStore {
       if (state.selectedEntity === selected) {
         return { selectedEntity: null };
       }
-      return {selectedEntity: selected};
+      return { selectedEntity: selected };
     });
   }
+}
+
+function transactionsPerYear(data: AidTransaction[]): YearTotal[] {
+  const perYear = new Map<number, YearTotal>();
+  data.forEach(d => {
+    const yearTotal: YearTotal = perYear.get(d.year) ?? { year: d.year, amount: 0 };
+    yearTotal.amount += d.amount;
+    perYear.set(d.year, yearTotal);
+  });
+  return [...perYear.values()]
+    .filter(d => d.year !== 9999) // filter bad data
+    .sort((a, b) => a.year - b.year);
 }
 
 
