@@ -1,5 +1,2 @@
 <h3>Amount donated vs received over time</h3>
-<svg #lineChart [attr.width]="dimensions().width" [attr.height]="100">
-  <g #lineGroup></g>
-  <g #xAxisGroup [attr.transform]="axisTransform"></g>
-</svg>
+<app-multi-line-chart [data]="lines()" [x]="x" [y]="y" [xSpan]="xSpan()"/>

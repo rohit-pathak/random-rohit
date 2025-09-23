@@ -1,79 +1,36 @@
-import { AfterViewInit, Component, computed, effect, ElementRef, inject, Injector, viewChild } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { AidDataStore, YearTotal } from "../../aid-data.store";
-import { ResizeDirective } from "../../../shared/directives/resize.directive";
-import { axisBottom, line, max, min, scaleLinear, scaleLog, select } from "d3";
+import {
+  LineData,
+  MultiLineChartComponent
+} from "../../../shared/components/multi-line-chart/multi-line-chart.component";
 
 @Component({
   selector: 'app-received-donated-multiline',
-  imports: [],
+  imports: [
+    MultiLineChartComponent
+  ],
   templateUrl: './received-donated-multiline.component.html',
   styleUrl: './received-donated-multiline.component.scss',
-  hostDirectives: [ResizeDirective],
 })
-export class ReceivedDonatedMultilineComponent implements AfterViewInit {
+export class ReceivedDonatedMultilineComponent {
   private readonly store = inject(AidDataStore);
-  private readonly resize = inject(ResizeDirective);
-  private readonly injector = inject(Injector);
-  private readonly svgRef = viewChild.required<ElementRef>('lineChart');
-  private readonly lineGroupRef = viewChild.required<ElementRef>('lineGroup');
-  private readonly xAxisGroupRef = viewChild.required<ElementRef>('xAxisGroup');
-  private readonly lineGroup = computed(() => select<SVGGElement, unknown>(this.lineGroupRef().nativeElement));
-  private readonly xAxisGroup = computed(() => select<SVGGElement, unknown>(this.xAxisGroupRef().nativeElement));
 
-  protected readonly dimensions= this.resize.dimensions;
-  protected readonly totalHeight = 100;
-  protected readonly padding = { top: 5, bottom: 20};
-  protected readonly height = this.totalHeight - this.padding.top - this.padding.bottom;
-
-  private readonly xScale = computed(() => {
-    const width = this.dimensions().width;
-    const [start, end] = this.store.totalYearRange();
-    return scaleLinear([start, end], [0, width]);
+  // shared chart component inputs
+  protected readonly lines = computed<LineData<YearTotal>[]>(() => {
+    return [
+      {
+        name: 'Donated',
+        data: this.store.selectedDonatedPerYear()
+      },
+      {
+        name: 'Received',
+        data: this.store.selectedReceivedPerYear()
+      }
+    ];
   });
-  private readonly yScale = computed(() => {
-    const amounts = [...this.store.selectedReceivedPerYear(), ...this.store.selectedDonatedPerYear()].map(t => t.amount);
-    return scaleLog([min(amounts) ?? 0, max(amounts ?? 0) ?? 0], [this.height, this.padding.top]);
-  });
-  private readonly lineGenerator = computed(() => {
-    return line<YearTotal>()
-      .x(d => this.xScale()(d.year) ?? 0)
-      .y(d => this.yScale()(d.amount) ?? 0);
-  });
+  protected readonly x = (d: YearTotal) => d.year;
+  protected readonly y = (d: YearTotal) => d.amount;
+  protected readonly xSpan = this.store.totalYearRange;
 
-  private readonly xAxisGenerator = computed(() => axisBottom(this.xScale()));
-  protected readonly axisTransform = `translate(0, ${this.padding.top + this.height})`;
-
-  ngAfterViewInit(): void {
-    effect(() => {
-      this.initializeDrawing();
-    }, {injector: this.injector});
-  }
-
-  private initializeDrawing(): void {
-    const dimensions = this.dimensions();
-    const data = this.store.transactionsPerYear();
-    if (!dimensions || !data) {
-      return;
-    }
-    this.drawLineChart();
-    this.drawXAxis();
-    // this.addBrush();
-  }
-
-  private drawLineChart(): void {
-    const received = this.store.selectedReceivedPerYear();
-    const donated = this.store.selectedDonatedPerYear();
-    this.lineGroup()
-      .selectAll('path')
-      .data([received, donated])
-      .join('path')
-      .attr('d', d => this.lineGenerator()(d))
-      .attr('fill', 'none')
-      .attr('stroke', '#bbb');
-  }
-
-  private drawXAxis(): void {
-    console.log('drawing x axis', this.dimensions().width);
-    this.xAxisGroup().call(this.xAxisGenerator());
-  }
 }
