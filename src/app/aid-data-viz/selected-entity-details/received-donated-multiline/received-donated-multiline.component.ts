@@ -4,6 +4,7 @@ import {
   LineData,
   MultiLineChartComponent
 } from "../../../shared/components/multi-line-chart/multi-line-chart.component";
+import { scaleOrdinal, schemeRdBu } from "d3";
 
 @Component({
   selector: 'app-received-donated-multiline',
@@ -32,5 +33,6 @@ export class ReceivedDonatedMultilineComponent {
   protected readonly x = (d: YearTotal) => d.year;
   protected readonly y = (d: YearTotal) => d.amount;
   protected readonly xSpan = this.store.totalYearRange;
+  protected readonly colorScale = scaleOrdinal(['Received', 'Donated'], [schemeRdBu[3][0], schemeRdBu[3][2]]);
 
 }

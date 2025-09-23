@@ -1,7 +1,16 @@
-import { Component, computed, effect, ElementRef, inject, Injector, input, viewChild, AfterViewInit } from '@angular/core';
+import {
+  AfterViewInit,
+  Component,
+  computed,
+  effect,
+  ElementRef,
+  inject,
+  Injector,
+  input,
+  viewChild
+} from '@angular/core';
 import { ResizeDirective } from "../../directives/resize.directive";
 import { axisBottom, line, max, min, scaleLinear, scaleLog, select } from "d3";
-import { YearTotal } from "../../../aid-data-viz/aid-data.store";
 
 @Component({
   selector: 'app-multi-line-chart',
@@ -16,6 +25,7 @@ export class MultiLineChartComponent<T> implements AfterViewInit {
   readonly y = input.required<(d: T) => number>();
   readonly xSpan = input<[number, number]>();
   readonly ySpan = input<[number, number]>();
+  readonly colorFn = input<(name: string) => string>(() => '#bbb');
 
   private readonly resize = inject(ResizeDirective);
   private readonly injector = inject(Injector);
@@ -78,13 +88,14 @@ export class MultiLineChartComponent<T> implements AfterViewInit {
 
   private drawLineChart(): void {
     const lines = this.data();
+    const colorFn = this.colorFn();
     this.lineGroup()
       .selectAll<SVGPathElement, LineData<T>>('path')
       .data(lines, d => d.name)
       .join('path')
       .attr('d', d => this.lineGenerator()(d.data))
       .attr('fill', 'none')
-      .attr('stroke', '#bbb'); // TODO: color
+      .attr('stroke', d => colorFn(d.name));
   }
 
   private drawXAxis(): void {
