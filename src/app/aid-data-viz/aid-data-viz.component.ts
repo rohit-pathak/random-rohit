@@ -5,7 +5,6 @@ import { CountryMapComponent } from "./country-map/country-map.component";
 import {
   TotalTransactionsLineChartComponent
 } from "./total-transactions-line-chart/total-transactions-line-chart.component";
-import { MatDivider } from "@angular/material/divider";
 import { SelectedEntityDetailsComponent } from "./selected-entity-details/selected-entity-details.component";
 
 @Component({
@@ -13,7 +12,6 @@ import { SelectedEntityDetailsComponent } from "./selected-entity-details/select
   imports: [
     CountryMapComponent,
     TotalTransactionsLineChartComponent,
-    MatDivider,
     SelectedEntityDetailsComponent
   ],
   templateUrl: './aid-data-viz.component.html',

@@ -1,4 +1,6 @@
 <svg #lineChart [attr.width]="dimensions().width" [attr.height]="dimensions().height">
-  <g #lineGroup></g>
-  <g #xAxisGroup [attr.transform]="axisTransform()"></g>
+  <g #brushGroup>
+    <g #lineGroup></g>
+    <g #xAxisGroup [attr.transform]="axisTransform()"></g>
+  </g>
 </svg>

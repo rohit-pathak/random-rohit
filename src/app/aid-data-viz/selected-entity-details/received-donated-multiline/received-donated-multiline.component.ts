@@ -35,4 +35,8 @@ export class ReceivedDonatedMultilineComponent {
   protected readonly xSpan = this.store.totalYearRange;
   protected readonly colorScale = scaleOrdinal(['Received', 'Donated'], [schemeRdBu[3][0], schemeRdBu[3][2]]);
 
+  onBrush(range: [number, number] | null): void {
+    console.log('brushed', range);
+  }
+
 }
