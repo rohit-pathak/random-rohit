@@ -63,7 +63,7 @@ export class CountryMapComponent implements AfterViewInit {
   private readonly defaultOpacity = 0.7;
   private readonly pathGenerator = computed(() => geoPath(this.projection()));
   private readonly radiusScale = computed(() => {
-    const transactionsMap = this.aidDataStore.dataByCountryOrOrg();
+    const transactionsMap = this.aidDataStore.dataByEntityInRange();
     const amounts = [...transactionsMap.values()].map(t => t.totalReceived + t.totalDonated);
     return scaleLinear([Math.min(...amounts), Math.max(...amounts)], [3, this.maxCircleRadius]);
   });
@@ -73,7 +73,7 @@ export class CountryMapComponent implements AfterViewInit {
     .outerRadius(this.maxCircleRadius);
 
   private readonly symbolCountryData = computed<SymbolDatum[]>(() => {
-    const dataByCountry = this.aidDataStore.dataByCountryOrOrg();
+    const dataByCountry = this.aidDataStore.dataByEntityInRange();
     const data = this.countriesGroup().selectAll<SVGPathElement, Feature>('path')
       .data()
       .filter(d => dataByCountry.has(d?.properties?.['name']))
@@ -87,7 +87,7 @@ export class CountryMapComponent implements AfterViewInit {
   });
   private readonly symbolOrgData = computed<SymbolDatum[]>(() => {
     const organizations = this.aidDataStore.organizations();
-    const dataByOrg = this.aidDataStore.dataByCountryOrOrg();
+    const dataByOrg = this.aidDataStore.dataByEntityInRange();
     const width = this.dimensions().width;
     const circleBoxWidth = this.maxCircleRadius * 2 + 2;
     const circlesPerRow = Math.floor(width / (circleBoxWidth));

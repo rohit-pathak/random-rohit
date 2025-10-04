@@ -67,6 +67,10 @@ export class AidDataStore {
     return [...countrySet.values()].filter(c => !this.mapCountries().has(c));
   });
 
+  readonly allDataByEntity = computed<Map<string, AidDataAggregate>>(() => {
+    return groupTransactionsByEntity(this.state.data());
+  });
+
   readonly dataInYearRange = computed(() => {
     const selectedYearRange = this.state.selectedYearRange();
     if (!selectedYearRange) {
@@ -76,31 +80,8 @@ export class AidDataStore {
     return this.state.data().filter(d => d.year >= begin && d.year <= end);
   });
 
-  readonly dataByCountryOrOrg = computed<Map<string, AidDataAggregate>>(() => {
-    const data = this.dataInYearRange();
-    const nameDataMap = new Map<string, AidDataAggregate>();
-    for (const transaction of data) {
-      const donorEntry = nameDataMap.get(transaction.donor) ?? {
-        name: transaction.donor,
-        totalDonated: 0,
-        totalReceived: 0,
-        transactions: []
-      }
-      donorEntry.totalDonated += transaction.amount;
-      donorEntry.transactions.push(transaction);
-      nameDataMap.set(transaction.donor, donorEntry);
-
-      const recipientEntry = nameDataMap.get(transaction.recipient) ?? {
-        name: transaction.recipient,
-        totalDonated: 0,
-        totalReceived: 0,
-        transactions: []
-      }
-      recipientEntry.totalReceived += transaction.amount;
-      recipientEntry.transactions.push(transaction);
-      nameDataMap.set(transaction.recipient, recipientEntry);
-    }
-    return nameDataMap;
+  readonly dataByEntityInRange = computed<Map<string, AidDataAggregate>>(() => {
+    return groupTransactionsByEntity(this.dataInYearRange());
   });
 
   readonly totalYearRange = computed<[number, number]>(() => {
@@ -108,17 +89,20 @@ export class AidDataStore {
     return [min(data.map(d => d.year)) ?? 0, max(data.map(d => d.year)) ?? 0] as [number, number];
   });
 
-  readonly selectedEntityData = computed<AidDataAggregate | null>(() => {
+  readonly selectedEntityDataInRange = computed<AidDataAggregate | null>(() => {
     const selected = this.selectedEntity();
-    const data = this.dataByCountryOrOrg().get(selected ?? '');
-    if (!selected || !data) {
-      return null;
-    }
-    return data;
+    const data = this.dataByEntityInRange().get(selected ?? '');
+    return data ?? null;
+  });
+
+  readonly allSelectedEntityData = computed<AidDataAggregate | null>(() => {
+    const selected = this.selectedEntity();
+    const data = this.allDataByEntity().get(selected ?? '');
+    return data ?? null;
   });
 
   readonly selectedReceivedPerYear = computed<YearTotal[]>(() => {
-    const selected = this.selectedEntityData();
+    const selected = this.allSelectedEntityData();
     if (!selected) {
       return [];
     }
@@ -127,7 +111,7 @@ export class AidDataStore {
   });
 
   readonly selectedDonatedPerYear = computed<YearTotal[]>(() => {
-    const selected = this.selectedEntityData();
+    const selected = this.allSelectedEntityData();
     if (!selected) {
       return [];
     }
@@ -177,7 +161,7 @@ export class AidDataStore {
     )
   );
 
-  readonly setBrushSpan= (brushSpan: [number, number] | null) => patchState(this.state, { _brushSpan: brushSpan });
+  readonly setBrushSpan = (brushSpan: [number, number] | null) => patchState(this.state, { _brushSpan: brushSpan });
   readonly setYearRange = (selectedYearRange: [number, number] | null) => patchState(this.state, { selectedYearRange });
   readonly setSelectedSymbolDatum = (selected: string | null) => {
     patchState(this.state, (state) => {
@@ -199,6 +183,32 @@ function transactionsPerYear(data: AidTransaction[]): YearTotal[] {
   return [...perYear.values()]
     .filter(d => d.year !== 9999) // filter bad data
     .sort((a, b) => a.year - b.year);
+}
+
+function groupTransactionsByEntity(data: AidTransaction[]): Map<string, AidDataAggregate> {
+  const nameDataMap = new Map<string, AidDataAggregate>();
+  for (const transaction of data) {
+    const donorEntry = nameDataMap.get(transaction.donor) ?? {
+      name: transaction.donor,
+      totalDonated: 0,
+      totalReceived: 0,
+      transactions: []
+    }
+    donorEntry.totalDonated += transaction.amount;
+    donorEntry.transactions.push(transaction);
+    nameDataMap.set(transaction.donor, donorEntry);
+
+    const recipientEntry = nameDataMap.get(transaction.recipient) ?? {
+      name: transaction.recipient,
+      totalDonated: 0,
+      totalReceived: 0,
+      transactions: []
+    }
+    recipientEntry.totalReceived += transaction.amount;
+    recipientEntry.transactions.push(transaction);
+    nameDataMap.set(transaction.recipient, recipientEntry);
+  }
+  return nameDataMap;
 }
 
 
