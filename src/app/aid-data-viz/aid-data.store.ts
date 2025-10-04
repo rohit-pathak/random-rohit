@@ -14,7 +14,8 @@ interface AidDataState {
   countriesGeoJson: FeatureCollection | null;
   data: AidTransaction[];
   selectedEntity: string | null;
-  selectedYearRange: [number, number] | null;
+  selectedYearRange: [number, number] | null; // TODO: make computed based on brushSpan
+  _brushSpan: [number, number] | null;
 }
 
 @Injectable()
@@ -28,6 +29,7 @@ export class AidDataStore {
     countriesGeoJson: null,
     selectedEntity: null,
     selectedYearRange: null,
+    _brushSpan: null,
   });
 
   // state properties
@@ -38,6 +40,14 @@ export class AidDataStore {
   readonly countriesGeoJson = this.state.countriesGeoJson;
   readonly selectedEntity = this.state.selectedEntity;
   readonly selectedYearRange = this.state.selectedYearRange;
+  // computed to prevent duplicate emissions
+  readonly brushSpan = computed(() => {
+    return this.state._brushSpan();
+  }, { equal: (a, b) => (a?.[0] === b?.[0]) && (a?.[1] === b?.[1]) });
+
+  // TODO: idea
+  // Throttle selectedYearRange so that computation happens when brushing has "settled".
+  // Don't throttle brushSpan so that visually the brushing looks synchronized across charts.
 
   // computed properties
   readonly mapCountries = computed<Set<string>>(() => {
@@ -167,6 +177,7 @@ export class AidDataStore {
     )
   );
 
+  readonly setBrushSpan= (brushSpan: [number, number] | null) => patchState(this.state, { _brushSpan: brushSpan });
   readonly setYearRange = (selectedYearRange: [number, number] | null) => patchState(this.state, { selectedYearRange });
   readonly setSelectedSymbolDatum = (selected: string | null) => {
     patchState(this.state, (state) => {

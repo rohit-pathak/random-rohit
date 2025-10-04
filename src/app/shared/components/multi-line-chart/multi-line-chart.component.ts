@@ -1,14 +1,4 @@
-import {
-  afterRenderEffect,
-  Component,
-  computed,
-  ElementRef,
-  inject,
-  Injector,
-  input,
-  output,
-  viewChild
-} from '@angular/core';
+import { afterRenderEffect, Component, computed, ElementRef, inject, input, output, viewChild } from '@angular/core';
 import { ResizeDirective } from "../../directives/resize.directive";
 import { axisBottom, brushX, D3BrushEvent, line, max, min, scaleLinear, scaleLog, select } from "d3";
 
@@ -26,11 +16,11 @@ export class MultiLineChartComponent<T> {
   readonly xSpan = input<[number, number]>();
   readonly ySpan = input<[number, number]>();
   readonly colorFn = input<(name: string) => string>(() => '#bbb');
+  readonly brushSpan = input<[number, number] | null>();
 
-  readonly brush = output<[number, number] | null>();
+  readonly brush = output<BrushSpan | null>();
 
   private readonly resize = inject(ResizeDirective);
-  private readonly injector = inject(Injector);
   private readonly svgRef = viewChild.required<ElementRef>('lineChart');
   private readonly lineGroupRef = viewChild.required<ElementRef>('lineGroup');
   private readonly xAxisGroupRef = viewChild.required<ElementRef>('xAxisGroup');
@@ -76,11 +66,8 @@ export class MultiLineChartComponent<T> {
   private readonly chartBrush = brushX().on('brush end', (e) => this.handleBrush(e));
 
   constructor() {
-    const component = this;
-    afterRenderEffect({
-      write: () => {
-        component.initializeDrawing();
-      },
+    afterRenderEffect(() => {
+      this.initializeDrawing();
     });
   }
 
@@ -112,7 +99,14 @@ export class MultiLineChartComponent<T> {
   }
 
   private addBrush(): void {
-    this.brushGroup().call(this.chartBrush);
+    const brushGroup = this.brushGroup();
+    brushGroup.call(this.chartBrush);
+    const extent = this.brushSpan();
+    if (extent) {
+      brushGroup.call(this.chartBrush.move, extent);
+    } else {
+      brushGroup.call(this.chartBrush.clear);
+    }
   }
 
   private handleBrush(e: D3BrushEvent<unknown>): void {
@@ -120,13 +114,18 @@ export class MultiLineChartComponent<T> {
       this.brush.emit(null);
       return;
     }
-    const [x1, x2] = e.selection as [number, number];
-    const selectedX: [number, number] = [this.xScale().invert(x1), this.xScale().invert(x2)];
-    this.brush.emit(selectedX);
+    const range = e.selection as [number, number];
+    const domain: [number, number] = [this.xScale().invert(range[0]), this.xScale().invert(range[1])];
+    this.brush.emit({ domain, range });
   }
 }
 
 export interface LineData<T> {
   name: string;
   data: T[];
+}
+
+export interface BrushSpan {
+  domain: [number, number]
+  range: [number, number]
 }

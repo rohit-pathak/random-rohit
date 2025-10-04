@@ -1,6 +1,7 @@
 import { Component, computed, inject } from '@angular/core';
 import { AidDataStore, YearTotal } from "../../aid-data.store";
 import {
+  BrushSpan,
   LineData,
   MultiLineChartComponent
 } from "../../../shared/components/multi-line-chart/multi-line-chart.component";
@@ -34,9 +35,13 @@ export class ReceivedDonatedMultilineComponent {
   protected readonly y = (d: YearTotal) => d.amount;
   protected readonly xSpan = this.store.totalYearRange;
   protected readonly colorScale = scaleOrdinal(['Received', 'Donated'], [schemeRdBu[3][0], schemeRdBu[3][2]]);
+  protected readonly brushSpan = this.store.brushSpan;
 
-  onBrush(range: [number, number] | null): void {
-    console.log('brushed', range);
+  onBrush(span: BrushSpan | null): void {
+    this.store.setBrushSpan(span?.range ?? null);
+    if (span?.domain) {
+      // set year range based on domain
+    }
   }
 
 }

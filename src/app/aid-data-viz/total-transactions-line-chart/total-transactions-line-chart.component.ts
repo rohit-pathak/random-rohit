@@ -88,6 +88,8 @@ export class TotalTransactionsLineChartComponent implements AfterViewInit {
   }
 
   private handleBrush(e: D3BrushEvent<unknown>): void {
+    this.aidDataStore.setBrushSpan(e.selection as [number, number] | null);
+    // TODO: remove, compute year range based on brushSpan
     if (!e.selection) {
       this.aidDataStore.setYearRange(null);
       return;
