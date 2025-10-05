@@ -95,6 +95,35 @@ export class AidDataStore {
     return data ?? null;
   });
 
+  readonly selectedEntityGroupedTransactions = computed<EntityTransactionTotal[] | null>(() => {
+    const selectedEntity = this.selectedEntity();
+    const selectedData = this.selectedEntityDataInRange();
+    if (!selectedEntity || !selectedData) {
+      return null;
+    }
+    const entityToTotal = new Map<string, EntityTransactionTotal>();
+    selectedData.transactions.forEach(t => {
+      if (t.recipient === selectedEntity) {
+        const transactionGroup = entityToTotal.get(t.donor) ?? {
+          entity: t.donor,
+          donated: 0,
+          received: 0
+        }
+        transactionGroup.received += t.amount;
+        entityToTotal.set(t.donor, transactionGroup);
+      } else {
+        const transactionGroup = entityToTotal.get(t.recipient) ?? {
+          entity: t.recipient,
+          donated: 0,
+          received: 0
+        }
+        transactionGroup.donated += t.amount;
+        entityToTotal.set(t.recipient, transactionGroup);
+      }
+    });
+    return [...entityToTotal.values()];
+  });
+
   readonly allSelectedEntityData = computed<AidDataAggregate | null>(() => {
     const selected = this.selectedEntity();
     const data = this.allDataByEntity().get(selected ?? '');
@@ -222,4 +251,10 @@ export interface AidDataAggregate {
 export interface YearTotal {
   year: number;
   amount: number;
+}
+
+export interface EntityTransactionTotal {
+  entity: string;
+  donated: number;
+  received: number;
 }
