@@ -5,7 +5,7 @@ import { AidDataService, AidTransaction } from "./aid-data.service";
 import { computed, inject, Injectable } from "@angular/core";
 import { tapResponse } from "@ngrx/operators";
 import { FeatureCollection } from "geojson";
-import { max, min } from "d3";
+import { max, min, scaleOrdinal, schemeRdBu } from "d3";
 
 interface AidDataState {
   isLoading: boolean;
@@ -152,6 +152,9 @@ export class AidDataStore {
     const data = this.data();
     return transactionsPerYear(data);
   });
+
+  // misc shared properties
+  readonly colorScale = scaleOrdinal(['received', 'donated'], [schemeRdBu[3][0], schemeRdBu[3][2]]);
 
   // methods
   readonly loadMap = rxMethod<void>(
