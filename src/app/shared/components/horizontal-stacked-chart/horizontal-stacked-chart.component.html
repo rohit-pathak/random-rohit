@@ -1,3 +1,4 @@
 <svg #svg [attr.width]="dimensions().width" [attr.height]="height()">
-  <g #barGroup></g>
+  <g #labelGroup [attr.transform]="axisTransform()"></g>
+  <g #barGroup [attr.transform]="axisTransform()"></g>
 </svg>

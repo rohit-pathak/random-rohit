@@ -1,6 +1,6 @@
 import { afterRenderEffect, Component, computed, ElementRef, inject, input, viewChild } from '@angular/core';
 import { ResizeDirective } from "../../directives/resize.directive";
-import { scaleBand, scaleLinear, select, stack, stackOrderDescending } from "d3";
+import { axisLeft, scaleBand, scaleLinear, select, stack, stackOrderDescending } from "d3";
 
 @Component({
   selector: 'app-horizontal-stacked-chart',
@@ -17,9 +17,17 @@ export class HorizontalStackedChartComponent<T> {
   readonly colorFn = input.required<(key: string) => string>();
 
   protected readonly dimensions = inject(ResizeDirective).dimensions;
+  protected readonly height = computed(() =>
+    Math.max(this.barHeight, (this.data()?.length ?? 0) * this.barHeight));
+
+  private readonly labelWidth = computed(() => Math.floor(0.3 * this.dimensions().width));
+  private readonly barWidth = computed(() => this.dimensions().width - this.labelWidth());
+  protected readonly axisTransform = computed(() => `translate(${this.labelWidth()}, 0)`);
 
   private readonly svgRef = viewChild.required<ElementRef>('svg');
+  private readonly labelGroupRef = viewChild.required<ElementRef>('labelGroup');
   private readonly barGroupRef = viewChild.required<ElementRef>('barGroup');
+  private readonly labelGroup = computed(() => select<SVGGElement, unknown>(this.labelGroupRef().nativeElement));
   private readonly barGroup = computed(() => select<SVGGElement, unknown>(this.barGroupRef().nativeElement))
   private readonly stackGenerator = computed(() =>
     stack<T>()
@@ -34,23 +42,19 @@ export class HorizontalStackedChartComponent<T> {
     return this.stackGenerator()(data);
   });
   private readonly xScale = computed(() => {
-    const width = this.dimensions().width;
+    const width = this.barWidth();
     const stackedData = this.stackedData();
     const maxStackVal = Math.max(...stackedData.flatMap(series => series.map(d => d[1])))
-    return scaleLinear([0, maxStackVal], [0, width]);
+    return scaleLinear([0, maxStackVal], [0, width]); // TODO: try log scale
   });
-  private readonly barHeight = 30;
-
-  protected readonly height = computed(() => {
-    return Math.max(this.barHeight, (this.data()?.length ?? 0) * this.barHeight);
-  });
-
+  private readonly barHeight = 20;
   private readonly bandScale = computed(() => {
     return scaleBand()
       .domain(this.data()?.map(d => this.labelFn()(d)) ?? [])
       .range([0, this.height()])
       .padding(0.1);
   });
+  private readonly labelAxis = computed(() => axisLeft(this.bandScale()));
 
   constructor() {
     afterRenderEffect({
@@ -62,6 +66,11 @@ export class HorizontalStackedChartComponent<T> {
 
   private initializeDrawing(): void {
     this.drawStackedBars();
+    this.drawLabels();
+  }
+
+  private drawLabels(): void {
+    this.labelGroup().call(this.labelAxis());
   }
 
   private drawStackedBars(): void {
