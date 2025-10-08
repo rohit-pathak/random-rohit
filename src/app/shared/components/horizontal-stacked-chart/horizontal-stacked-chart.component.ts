@@ -1,11 +1,16 @@
-import { afterRenderEffect, Component, computed, ElementRef, inject, input, viewChild } from '@angular/core';
+import { afterRenderEffect, Component, computed, ElementRef, inject, input, signal, viewChild } from '@angular/core';
 import { ResizeDirective } from "../../directives/resize.directive";
-import { axisLeft, scaleBand, scaleLinear, select, stack, stackOrderDescending } from "d3";
+import { axisLeft, scaleBand, scaleLinear, select, SeriesPoint, stack, stackOrderDescending } from "d3";
 import { DomainDatum, NumberKeys } from "../chart.model";
+import { DecimalPipe } from "@angular/common";
+import { TooltipComponent } from "../tooltip/tooltip.component";
 
 @Component({
   selector: 'app-horizontal-stacked-chart',
-  imports: [],
+  imports: [
+    DecimalPipe,
+    TooltipComponent
+  ],
   templateUrl: './horizontal-stacked-chart.component.html',
   styleUrl: './horizontal-stacked-chart.component.scss',
   hostDirectives: [ResizeDirective],
@@ -57,6 +62,21 @@ export class HorizontalStackedChartComponent<T> {
       .padding(0.1);
   });
   private readonly labelAxis = computed(() => axisLeft(this.bandScale()));
+
+  protected readonly host = inject(ElementRef<HTMLElement>);
+  protected readonly tooltipEvent = signal<Event | null>(null);
+  protected readonly selectedDatum = signal<T | null>(null);
+  protected readonly tooltipData = computed<TooltipDatum | null>(() => {
+    const selectedDatum = this.selectedDatum();
+    if (!selectedDatum) {
+      return null;
+    }
+    return {
+      title: this.labelFn()(selectedDatum),
+      groups: this.groups().map(key => {
+        return { name: key, value: selectedDatum[key] as number};
+      }) };
+  });
 
   constructor() {
     afterRenderEffect({
@@ -120,8 +140,26 @@ export class HorizontalStackedChartComponent<T> {
         return this.bandScale()(label) ?? null;
       })
       .attr('width', (d) => this.xScale()(d[1]) - this.xScale()(d[0]))
-      .attr('height', this.bandScale().bandwidth());
+      .attr('height', this.bandScale().bandwidth())
+      .on('mouseover', (_: Event, d) => this.onBarMouseover(d))
+      .on('mousemove', (event: Event) => this.tooltipEvent.set(event))
+      .on('mouseout', () => this.onBarMouseout());
+  }
+
+  private onBarMouseover(d: SeriesPoint<T>): void {
+    // TODO: highlight bars of the same type, emit hovered datum
+    this.selectedDatum.set(d.data);
+  }
+
+  private onBarMouseout(): void {
+    // TODO: unhighlight bars, emit output
+    this.selectedDatum.set(null);
+    this.tooltipEvent.set(null);
   }
 
 }
 
+interface TooltipDatum {
+  title: string;
+  groups: {name: string, value: number}[];
+}
