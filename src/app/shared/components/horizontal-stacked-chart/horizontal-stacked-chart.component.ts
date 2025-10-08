@@ -1,6 +1,7 @@
 import { afterRenderEffect, Component, computed, ElementRef, inject, input, viewChild } from '@angular/core';
 import { ResizeDirective } from "../../directives/resize.directive";
 import { axisLeft, scaleBand, scaleLinear, select, stack, stackOrderDescending } from "d3";
+import { DomainDatum, NumberKeys } from "../chart.model";
 
 @Component({
   selector: 'app-horizontal-stacked-chart',
@@ -27,6 +28,7 @@ export class HorizontalStackedChartComponent<T> {
   private readonly svgRef = viewChild.required<ElementRef>('svg');
   private readonly labelGroupRef = viewChild.required<ElementRef>('labelGroup');
   private readonly barGroupRef = viewChild.required<ElementRef>('barGroup');
+  private readonly svg = computed(() => select<SVGSVGElement, unknown>(this.svgRef().nativeElement));
   private readonly labelGroup = computed(() => select<SVGGElement, unknown>(this.labelGroupRef().nativeElement));
   private readonly barGroup = computed(() => select<SVGGElement, unknown>(this.barGroupRef().nativeElement))
   private readonly stackGenerator = computed(() =>
@@ -70,7 +72,34 @@ export class HorizontalStackedChartComponent<T> {
   }
 
   private drawLabels(): void {
-    this.labelGroup().call(this.labelAxis());
+    this.labelGroup()
+      .call(this.labelAxis())
+      .selectAll('.tick text')
+    this.truncateLabelText();
+  }
+
+  private truncateLabelText(): void {
+    const targetWidth = this.labelWidth() - 30;
+    const tempTextBox = this.svg()
+      .selectAll<SVGTextElement, number>('.temp-box')
+      .data([1])
+      .join('text')
+      .attr('class', 'temp-box')
+      .attr('font-size', 10) // d3 adds these styles to the axis group
+      .attr('font-family', 'sans-serif')
+      .attr('transform', 'translate(-50, -50)')
+      .attr('visibility', 'hidden');
+    this.labelGroup().selectAll<SVGTextElement, DomainDatum<T>>('.tick text')
+      .text((d) => {
+        const originalText = d.toString();
+        let truncatedText = d.toString();
+        tempTextBox.text(truncatedText);
+        while (truncatedText.length > 2 && targetWidth < (tempTextBox.node()?.getBoundingClientRect().width ?? 0)) {
+          truncatedText = truncatedText.substring(0, truncatedText.length - 1);
+          tempTextBox.text(truncatedText);
+        }
+        return truncatedText === originalText ? originalText : `${truncatedText}...`;
+      });
   }
 
   private drawStackedBars(): void {
@@ -95,8 +124,4 @@ export class HorizontalStackedChartComponent<T> {
   }
 
 }
-
-type NumberKeys<T> = {
-  [K in keyof T]: T[K] extends number ? K : never
-}[keyof T];
 
