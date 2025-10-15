@@ -3,7 +3,7 @@
   <div><strong>
     <ng-content select="[tooltip-header]"/>
   </strong></div>
-  <div>
+  <div #tooltipContent appResize>
     <ng-content/>
   </div>
 </div>
