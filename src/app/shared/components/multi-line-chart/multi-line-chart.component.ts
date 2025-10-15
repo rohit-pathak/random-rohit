@@ -60,7 +60,7 @@ export class MultiLineChartComponent<T> {
       .y(d => this.yScale()(y(d)) ?? 0);
   });
 
-  private readonly xAxisGenerator = computed(() => axisBottom(this.xScale()));
+  private readonly xAxisGenerator = computed(() => axisBottom(this.xScale()).ticks(5)); // TODO: make ticks an input
   protected readonly axisTransform = computed(() => `translate(0, ${this.padding.top + this.height()})`);
 
   private readonly chartBrush = brushX().on('brush end', (e) => this.handleBrush(e));

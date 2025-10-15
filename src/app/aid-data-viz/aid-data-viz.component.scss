@@ -2,6 +2,15 @@
   display: block;
   padding-bottom: 3rem;
 
+  .charts {
+    display: flex;
+    gap: 1rem;
+
+    .details-container {
+      width: 40%;
+    }
+  }
+
   app-selected-entity-details {
     margin-top: 2rem;
   }
