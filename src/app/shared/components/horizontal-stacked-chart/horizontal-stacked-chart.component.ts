@@ -32,9 +32,11 @@ export class HorizontalStackedChartComponent<T> {
 
   private readonly svgRef = viewChild.required<ElementRef>('svg');
   private readonly labelGroupRef = viewChild.required<ElementRef>('labelGroup');
+  private readonly hoverGroupRef = viewChild.required<ElementRef>('hoverGroup');
   private readonly barGroupRef = viewChild.required<ElementRef>('barGroup');
   private readonly svg = computed(() => select<SVGSVGElement, unknown>(this.svgRef().nativeElement));
   private readonly labelGroup = computed(() => select<SVGGElement, unknown>(this.labelGroupRef().nativeElement));
+  private readonly hoverGroup = computed(() => select<SVGGElement, unknown>(this.hoverGroupRef().nativeElement));
   private readonly barGroup = computed(() => select<SVGGElement, unknown>(this.barGroupRef().nativeElement))
   private readonly stackGenerator = computed(() =>
     stack<T>()
@@ -59,6 +61,7 @@ export class HorizontalStackedChartComponent<T> {
     return scaleBand()
       .domain(this.data()?.map(d => this.labelFn()(d)) ?? [])
       .range([0, this.height()])
+      .align(0.5)
       .padding(0.1);
   });
   private readonly labelAxis = computed(() => axisLeft(this.bandScale()));
@@ -74,8 +77,9 @@ export class HorizontalStackedChartComponent<T> {
     return {
       title: this.labelFn()(selectedDatum),
       groups: this.groups().map(key => {
-        return { name: key, value: selectedDatum[key] as number};
-      }) };
+        return { name: key, value: selectedDatum[key] as number };
+      })
+    };
   });
 
   constructor() {
@@ -87,6 +91,7 @@ export class HorizontalStackedChartComponent<T> {
   }
 
   private initializeDrawing(): void {
+    this.drawHoverBars();
     this.drawStackedBars();
     this.drawLabels();
   }
@@ -122,6 +127,41 @@ export class HorizontalStackedChartComponent<T> {
       });
   }
 
+  private drawHoverBars(): void {
+    const data = this.data();
+    if (!data) {
+      return;
+    }
+    const hoverBandScale = this.bandScale().copy().padding(0);
+    const hoverBars = this.hoverGroup()
+      .selectAll('.hover-bar')
+      .data(data)
+      .join('rect')
+      .attr('class', 'hover-bar')
+      .attr('x', this.xScale().range()[0])
+      .attr('y', d => {
+        const label = this.labelFn()(d);
+        return hoverBandScale(label) ?? null;
+      })
+      .attr('width', this.xScale().range()[1])
+      .attr('height', hoverBandScale.bandwidth())
+      .attr('fill', '#aaa')
+      .attr('opacity', 0);
+    const component = this;
+    hoverBars
+      .on('mouseover', function (_event, d) {
+        const bar = select(this);
+        bar.attr('opacity', 0.3);
+        component.onBarMouseover(d);
+      })
+      .on('mousemove', (event: Event) => this.tooltipEvent.set(event))
+      .on('mouseout', function () {
+        const bar = select(this);
+        bar.attr('opacity', 0)
+        component.onBarMouseout();
+      })
+  }
+
   private drawStackedBars(): void {
     const seriesGroups = this.barGroup()
       .selectAll('.series')
@@ -141,14 +181,14 @@ export class HorizontalStackedChartComponent<T> {
       })
       .attr('width', (d) => this.xScale()(d[1]) - this.xScale()(d[0]))
       .attr('height', this.bandScale().bandwidth())
-      .on('mouseover', (_: Event, d) => this.onBarMouseover(d))
+      .on('mouseover', (_: Event, d) => this.onBarMouseover(d.data))
       .on('mousemove', (event: Event) => this.tooltipEvent.set(event))
       .on('mouseout', () => this.onBarMouseout());
   }
 
-  private onBarMouseover(d: SeriesPoint<T>): void {
+  private onBarMouseover(d: T): void {
     // TODO: highlight bars of the same type, emit hovered datum
-    this.selectedDatum.set(d.data);
+    this.selectedDatum.set(d);
   }
 
   private onBarMouseout(): void {
@@ -161,5 +201,5 @@ export class HorizontalStackedChartComponent<T> {
 
 interface TooltipDatum {
   title: string;
-  groups: {name: string, value: number}[];
+  groups: { name: string, value: number }[];
 }
