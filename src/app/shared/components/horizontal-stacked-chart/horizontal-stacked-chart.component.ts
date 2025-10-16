@@ -98,8 +98,7 @@ export class HorizontalStackedChartComponent<T> {
 
   private drawLabels(): void {
     this.labelGroup()
-      .call(this.labelAxis())
-      .selectAll('.tick text')
+      .call(this.labelAxis()) // TODO: transition axis
     this.truncateLabelText();
   }
 
@@ -170,20 +169,23 @@ export class HorizontalStackedChartComponent<T> {
       .attr('class', 'series')
       .attr('fill', series => this.colorFn()(series.key))
     seriesGroups
-      .selectAll('.bar')
-      .data(d => d)
+      .selectAll<SVGRectElement, BarDatum<T>>('.bar')
+      .data(
+        series=> series.map(point => ({ key: series.key, point })),
+        datum => `${this.labelFn()(datum.point.data)}-${datum.key}`)
       .join('rect')
       .attr('class', 'bar')
-      .attr('x', (d) => this.xScale()(d[0]))
+      .on('mouseover', (_: Event, d) => this.onBarMouseover(d.point.data))
+      .on('mousemove', (event: Event) => this.tooltipEvent.set(event))
+      .on('mouseout', () => this.onBarMouseout())
+      .transition()
+      .attr('x', (d) => this.xScale()(d.point[0]))
       .attr('y', (d) => {
-        const label = this.labelFn()(d.data);
+        const label = this.labelFn()(d.point.data);
         return this.bandScale()(label) ?? null;
       })
-      .attr('width', (d) => this.xScale()(d[1]) - this.xScale()(d[0]))
+      .attr('width', (d) => this.xScale()(d.point[1]) - this.xScale()(d.point[0]))
       .attr('height', this.bandScale().bandwidth())
-      .on('mouseover', (_: Event, d) => this.onBarMouseover(d.data))
-      .on('mousemove', (event: Event) => this.tooltipEvent.set(event))
-      .on('mouseout', () => this.onBarMouseout());
   }
 
   private onBarMouseover(d: T): void {
@@ -202,4 +204,13 @@ export class HorizontalStackedChartComponent<T> {
 interface TooltipDatum {
   title: string;
   groups: { name: string, value: number }[];
+}
+
+/**
+ * This interface captures the which key the series point is for, which helps create an id for the bars,
+ * which helps with transitions.
+ */
+interface BarDatum<T> {
+  point: SeriesPoint<T>;
+  key: string;
 }
