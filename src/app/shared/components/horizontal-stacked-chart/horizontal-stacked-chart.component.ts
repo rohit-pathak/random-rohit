@@ -22,6 +22,10 @@ export class HorizontalStackedChartComponent<T> {
   // TODO: consider a default color scale if not provided
   readonly colorFn = input.required<(key: string) => string>();
 
+  protected readonly isEmpty = computed(() => {
+    const data = this.data();
+    return !data || (data.length === 0);
+  })
   protected readonly dimensions = inject(ResizeDirective).dimensions;
   protected readonly height = computed(() =>
     Math.max(this.barHeight, (this.data()?.length ?? 0) * this.barHeight));
@@ -178,7 +182,7 @@ export class HorizontalStackedChartComponent<T> {
       .on('mouseover', (_: Event, d) => this.onBarMouseover(d.point.data))
       .on('mousemove', (event: Event) => this.tooltipEvent.set(event))
       .on('mouseout', () => this.onBarMouseout())
-      .transition()
+      // .transition()
       .attr('x', (d) => this.xScale()(d.point[0]))
       .attr('y', (d) => {
         const label = this.labelFn()(d.point.data);

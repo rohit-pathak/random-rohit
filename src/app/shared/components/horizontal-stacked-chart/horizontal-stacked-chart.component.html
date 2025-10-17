@@ -1,4 +1,8 @@
-<svg #svg [attr.width]="dimensions().width" [attr.height]="height()">
+@if (isEmpty()) {
+  <small class="text-secondary">No data to display</small>
+}
+<svg #svg [attr.width]="dimensions().width" [attr.height]="height()"
+     [style.visibility]="isEmpty() ? 'hidden': 'visible'">
   <g #labelGroup [attr.transform]="axisTransform()"></g>
   <g #hoverGroup [attr.transform]="axisTransform()"></g>
   <g #barGroup [attr.transform]="axisTransform()"></g>
