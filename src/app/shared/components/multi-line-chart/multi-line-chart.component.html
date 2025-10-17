@@ -1,6 +1,11 @@
 <svg #lineChart [attr.width]="dimensions().width" [attr.height]="dimensions().height">
   <g #brushGroup>
-    <g #lineGroup></g>
-    <g #xAxisGroup [attr.transform]="axisTransform()"></g>
+    <g #lineGroup class="line-group"></g>
+    <g #xAxisGroup class="x-axis-group" [attr.transform]="axisTransform()"></g>
+    <g #pointGroup class="point-group"></g>
   </g>
 </svg>
+<app-tooltip [triggerEvent]="tooltipEvent()" [target]="host.nativeElement">
+  <ng-container tooltip-header>Hello</ng-container>
+  <div>World</div>
+</app-tooltip>

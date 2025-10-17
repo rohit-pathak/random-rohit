@@ -1,10 +1,23 @@
-import { afterRenderEffect, Component, computed, ElementRef, inject, input, output, viewChild } from '@angular/core';
+import {
+  afterRenderEffect,
+  Component,
+  computed,
+  ElementRef,
+  inject,
+  input,
+  output,
+  signal,
+  viewChild
+} from '@angular/core';
 import { ResizeDirective } from "../../directives/resize.directive";
 import { axisBottom, brushX, D3BrushEvent, line, max, min, scaleLinear, scaleLog, select } from "d3";
+import { TooltipComponent } from "../tooltip/tooltip.component";
 
 @Component({
   selector: 'app-multi-line-chart',
-  imports: [],
+  imports: [
+    TooltipComponent
+  ],
   templateUrl: './multi-line-chart.component.html',
   styleUrl: './multi-line-chart.component.scss',
   hostDirectives: [ResizeDirective]
@@ -23,12 +36,16 @@ export class MultiLineChartComponent<T> {
   private readonly resize = inject(ResizeDirective);
   private readonly svgRef = viewChild.required<ElementRef>('lineChart');
   private readonly lineGroupRef = viewChild.required<ElementRef>('lineGroup');
+  private readonly pointGropuRef = viewChild.required<ElementRef>('pointGroup');
   private readonly xAxisGroupRef = viewChild.required<ElementRef>('xAxisGroup');
   private readonly brushGroupRef = viewChild.required<ElementRef>('brushGroup');
   private readonly lineGroup = computed(() => select<SVGGElement, unknown>(this.lineGroupRef().nativeElement));
+  private readonly pointGroup = computed(() => select<SVGGElement, unknown>(this.pointGropuRef().nativeElement));
   private readonly xAxisGroup = computed(() => select<SVGGElement, unknown>(this.xAxisGroupRef().nativeElement));
   private readonly brushGroup = computed(() => select<SVGGElement, unknown>(this.brushGroupRef().nativeElement));
 
+  protected readonly host = inject(ElementRef<HTMLElement>);
+  protected readonly tooltipEvent = signal<Event | null>(null);
   protected readonly dimensions = this.resize.dimensions;
   protected readonly padding = { top: 5, bottom: 20 };
   protected readonly height = computed(() => {
@@ -49,7 +66,7 @@ export class MultiLineChartComponent<T> {
     const y = this.y();
     const height = this.height();
     const yVals = data.flatMap(lineData => lineData.data.map(y));
-    const [start, end] = this.ySpan() ?? [min(yVals) ?? 0, max(yVals) ?? 0];
+    const [start, end] = this.ySpan() ?? [min(yVals) ?? 1, max(yVals) ?? 10];
     return scaleLog([start, end], [height, this.padding.top]); // TODO: get scale from input
   });
   private readonly lineGenerator = computed(() => {
@@ -79,7 +96,8 @@ export class MultiLineChartComponent<T> {
     }
     this.drawLineChart();
     this.drawXAxis();
-    this.addBrush();
+    this.drawPoints();
+    // this.addBrush();
   }
 
   private drawLineChart(): void {
@@ -89,9 +107,32 @@ export class MultiLineChartComponent<T> {
       .selectAll<SVGPathElement, LineData<T>>('path')
       .data(lines, d => d.name)
       .join('path')
+      .transition()
       .attr('d', d => this.lineGenerator()(d.data))
       .attr('fill', 'none')
       .attr('stroke', d => colorFn(d.name));
+  }
+
+  private drawPoints(): void {
+    const lines = this.data();
+    const colorFn = this.colorFn();
+    const x = this.x();
+    const y = this.y();
+    const pointGroups = this.pointGroup()
+      .selectAll<SVGGElement, LineData<T>>('.points')
+      .data(lines, d => d.name)
+      .join('g')
+      .attr('class', 'points');
+    pointGroups
+      .selectAll('.point')
+      .data(lineData => lineData.data.map(d => ({name: lineData.name, datum: d})))
+      .join('circle')
+      .attr('class', 'point')
+      .transition()
+      .attr('cx', d => this.xScale()(x(d.datum)))
+      .attr('cy', d => this.yScale()(y(d.datum)))
+      .attr('r', 2)
+      .attr('fill', d => colorFn(d.name));
   }
 
   private drawXAxis(): void {
