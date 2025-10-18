@@ -68,16 +68,20 @@ export class MultiLineChartComponent<T> {
   });
   protected readonly tooltipData = signal<TooltipDatum | null>(null);
   protected readonly dimensions = this.resize.dimensions;
-  protected readonly padding = { top: 5, bottom: 20 };
+  protected readonly padding = { top: 5, bottom: 20, left: 10, right: 10 };
   protected readonly height = computed(() => {
     const h = this.dimensions().height;
     return h - this.padding.top - this.padding.bottom;
-  })
+  });
+  protected readonly width = computed(() => {
+    const w = this.dimensions().width;
+    return w - this.padding.left - this.padding.right;
+  });
 
   private readonly xScale = computed(() => {
     const data = this.data();
     const x = this.x();
-    const width = this.dimensions().width;
+    const width = this.width();
     const xVals = data.flatMap(lineData => lineData.data.map(x));
     const [start, end] = this.xSpan() ?? [min(xVals) ?? 0, max(xVals) ?? 1];
     return scaleLinear([start, end], [0, width]);
@@ -113,9 +117,15 @@ export class MultiLineChartComponent<T> {
   });
 
   private readonly xAxisGenerator = computed(() => axisBottom(this.xScale()).ticks(5)); // TODO: make ticks an input
-  protected readonly axisTransform = computed(() => `translate(0, ${this.padding.top + this.height()})`);
+  protected readonly chartTransform = computed(() => `translate(${this.padding.left}, ${this.padding.top})`);
+  protected readonly axisTransform = computed(() => `translate(0, ${this.height()})`);
 
-  private readonly chartBrush = brushX().on('brush end', (e) => this.handleBrush(e));
+  // TODO: set brush extent based on width and height computed signals
+  private readonly chartBrush = computed(() => {
+    return brushX()
+      .extent([[0, 0], [this.width(), this.height()]])
+      .on('brush end', (e) => this.handleBrush(e));
+  })
 
   constructor() {
     afterRenderEffect(() => {
@@ -171,12 +181,12 @@ export class MultiLineChartComponent<T> {
 
   private addBrush(): void {
     const brushGroup = this.brushGroup();
-    brushGroup.call(this.chartBrush);
+    brushGroup.call(this.chartBrush());
     const extent = this.brushSpan();
     if (extent) {
-      brushGroup.call(this.chartBrush.move, extent);
+      brushGroup.call(this.chartBrush().move, extent);
     } else {
-      brushGroup.call(this.chartBrush.clear);
+      brushGroup.call(this.chartBrush().clear);
     }
   }
 
