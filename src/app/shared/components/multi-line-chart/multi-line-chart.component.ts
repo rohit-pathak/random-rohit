@@ -150,9 +150,13 @@ export class MultiLineChartComponent<T> {
     const lines = this.data();
     const colorFn = this.colorFn();
     this.lineGroup()
-      .selectAll<SVGPathElement, LineData<T>>('path')
+      .selectAll<SVGPathElement, LineData<T>>('.line')
       .data(lines, d => d.name)
       .join('path')
+      .attr('class', 'line')
+      .attr("stroke-width", 1.5)
+      .attr("stroke-linejoin", "round")
+      .attr("stroke-linecap", "round")
       .transition()
       .attr('d', d => this.lineGenerator()(d.data))
       .attr('fill', 'none')
@@ -220,6 +224,11 @@ export class MultiLineChartComponent<T> {
         this.pointGroup()
           .selectAll<SVGCircleElement, PointDatum<T>>('.point')
           .attr('opacity', d => d === closestPoint ? 1 : 0);
+        this.lineGroup()
+          .selectAll<SVGPathElement, LineData<T>>('.line')
+          .attr('opacity', d => d.name === closestPoint.lineName ? 1 : 0.4)
+          .filter(d => d.name === closestPoint.lineName)
+          .raise();
         this.hoverEvent.set(event);
         this.tooltipData.set({
           title: `${this.x()(closestPoint.datum)}`,
@@ -230,6 +239,8 @@ export class MultiLineChartComponent<T> {
         this.pointGroup()
           .selectAll('.point')
           .attr('opacity', 0);
+        this.lineGroup().selectAll('.line')
+          .attr('opacity', 1)
         this.hoverEvent.set(null);
       })
   }
