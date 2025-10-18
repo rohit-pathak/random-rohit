@@ -16,6 +16,7 @@ interface AidDataState {
   selectedEntity: string | null;
   selectedYearRange: [number, number] | null; // TODO: make computed based on brushSpan
   _brushSpan: [number, number] | null;
+  shouldAnimate: boolean;
 }
 
 @Injectable()
@@ -30,6 +31,7 @@ export class AidDataStore {
     selectedEntity: null,
     selectedYearRange: null,
     _brushSpan: null,
+    shouldAnimate: false,
   });
 
   // state properties
@@ -44,6 +46,7 @@ export class AidDataStore {
   readonly brushSpan = computed(() => {
     return this.state._brushSpan();
   }, { equal: (a, b) => (a?.[0] === b?.[0]) && (a?.[1] === b?.[1]) });
+  readonly shouldAnimate = this.state.shouldAnimate;
 
   // TODO: idea
   // Throttle selectedYearRange so that computation happens when brushing has "settled".
@@ -203,6 +206,7 @@ export class AidDataStore {
       return { selectedEntity: selected };
     });
   }
+  readonly setAnimate = (shouldAnimate: boolean) => patchState(this.state, { shouldAnimate });
 }
 
 function transactionsPerYear(data: AidTransaction[]): YearTotal[] {

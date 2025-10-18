@@ -61,6 +61,7 @@ export class CountryMapComponent {
   private readonly arcGenerator = arc<PieArcDatum<TransactionPieDatum>>()
     .innerRadius(0)
     .outerRadius(this.maxCircleRadius);
+  private readonly transitionDuration = computed(() => this.aidDataStore.shouldAnimate() ? 1000 : 0);
 
   private readonly symbolCountryData = computed<SymbolDatum[]>(() => {
     const dataByCountry = this.aidDataStore.dataByEntityInRange();
@@ -195,15 +196,15 @@ export class CountryMapComponent {
   private handleSymbolInteractivity(): void {
     const component = this;
     this.svg().selectAll<SVGPathElement, SymbolDatum>('.symbol')
-      .on('mouseover', function (event: Event, d) {
+      .on('pointerenter', function (event: Event, d) {
         select(this).attr('opacity', 1);
         component.tooltipEvent.set(event);
         component.hoveredCountry.set(d);
       })
-      .on('mousemove', (e) => {
+      .on('pointermove', (e) => {
         this.tooltipEvent.set(e);
       })
-      .on('mouseout', function () {
+      .on('pointerleave', function () {
         select(this).attr('opacity', component.defaultOpacity);
         component.tooltipEvent.set(null);
         component.hoveredCountry.set(null);
@@ -251,8 +252,8 @@ export class CountryMapComponent {
       .attr('x2', () => datum.centroid[0])
       .attr('y2', () => adjustOffset(datum.data.name, datum.centroid[1]))
       .style('pointer-events', 'none')
-      // .transition()
-      // .duration(1000)
+      .transition()
+      .duration(this.transitionDuration())
       .attr('x2', d => symbolCentroids.get(d)!.centroid[0])
       .attr('y2', d => adjustOffset(d, symbolCentroids.get(d)!.centroid[1]))
       .attr('stroke', this.colorScale('donated'))
@@ -267,8 +268,8 @@ export class CountryMapComponent {
       .attr('x2', d => symbolCentroids.get(d)!.centroid[0])
       .attr('y2', d => adjustOffset(d, symbolCentroids.get(d)!.centroid[1]))
       .style('pointer-events', 'none')
-      // .transition()
-      // .duration(1000)
+      .transition()
+      .duration(this.transitionDuration())
       .attr('x2', () => datum.centroid[0])
       .attr('y2', () => adjustOffset(datum.data.name, datum.centroid[1]))
       .attr('stroke', this.colorScale('received'))

@@ -4,7 +4,10 @@
 <p>The symbol map is meant as a guide to select a country or organization of interest to explore further. It shows pie charts at the centroid of each country on the map (or below the map if it doesn't have a coordinate on the map) where the radius is proportional to the total amount of transactions for that country in the selected year range.
 <p>Use the total transactions over time line chart to brush across a year range to narrow it down.</p>
 <p>Clicking on a country shows a more detailed breakdown of the transactions for that country over time, along with which countries those transactions went to or came from in the selected brushed range.</p>
-<p>That dataset for this visualization comes from <a href="https://www.aiddata.org/data/aiddata-core-research-release-level-1-3-1">aiddata.org</a></p>
+<p>The dataset for this visualization comes from <a href="https://www.aiddata.org/data/aiddata-core-research-release-level-1-3-1" target="_blank">aiddata.org</a></p>
+
+<p class="animations-toggle"><mat-slide-toggle (change)="onAnimationChange($event)">Animations</mat-slide-toggle></p>
+
 <div class="charts">
   <app-country-map />
   <div class="details-container">
