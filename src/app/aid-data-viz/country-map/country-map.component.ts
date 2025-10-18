@@ -1,14 +1,4 @@
-import {
-  AfterViewInit,
-  Component,
-  computed,
-  effect,
-  ElementRef,
-  inject,
-  Injector,
-  signal,
-  viewChild
-} from '@angular/core';
+import { afterRenderEffect, Component, computed, ElementRef, inject, Injector, signal, viewChild } from '@angular/core';
 import { AidDataAggregate, AidDataStore } from "../aid-data.store";
 import { ResizeDirective } from "../../shared/directives/resize.directive";
 import {
@@ -38,7 +28,7 @@ import { AidTransaction } from "../aid-data.service";
   hostDirectives: [ResizeDirective],
   styleUrl: './country-map.component.scss'
 })
-export class CountryMapComponent implements AfterViewInit {
+export class CountryMapComponent {
   private readonly aidDataStore = inject(AidDataStore);
   private readonly injector = inject(Injector);
   private readonly svgRef = viewChild.required<ElementRef>('chart')
@@ -115,30 +105,32 @@ export class CountryMapComponent implements AfterViewInit {
   protected readonly hoveredCountry = signal<SymbolDatum | null>(null);
   protected readonly tooltipEvent = signal<Event | null>(null);
 
-  ngAfterViewInit(): void {
-    this.initializeDrawing();
+  constructor() {
+    afterRenderEffect({
+      write: () => {
+        this.initializeDrawing();
+      }
+    })
   }
 
   private initializeDrawing(): void {
-    effect(() => {
-      const geoJson = this.aidDataStore.countriesGeoJson();
-      const dimensions = this.dimensions();
-      if (!geoJson || !dimensions) {
-        return;
-      }
-      this.drawMap(geoJson);
-      this.drawSymbolsOnMap();
-      const mapHeight = this.countriesGroup().node()?.getBoundingClientRect().height ?? 0;
-      this.organizationsGroup()
-        .attr('transform', `translate(0, ${mapHeight + this.maxCircleRadius * 2})`);
-      this.drawOrganizations();
-      this.drawTransactionLines();
-      this.handleSymbolInteractivity();
+    const geoJson = this.aidDataStore.countriesGeoJson();
+    const dimensions = this.dimensions();
+    if (!geoJson || !dimensions) {
+      return;
+    }
+    this.drawMap(geoJson);
+    this.drawSymbolsOnMap();
+    const mapHeight = this.countriesGroup().node()?.getBoundingClientRect().height ?? 0;
+    this.organizationsGroup()
+      .attr('transform', `translate(0, ${mapHeight + this.maxCircleRadius * 2})`);
+    this.drawOrganizations();
+    this.drawTransactionLines();
+    this.handleSymbolInteractivity();
 
-      const organizationsHeight = this.organizationsGroup().node()?.getBoundingClientRect().height ?? 0;
-      const totalHeight = Math.max(this.svgHeight(), mapHeight + organizationsHeight + 36); // extra for padding
-      this.svgHeight.set(totalHeight);
-    }, { injector: this.injector })
+    const organizationsHeight = this.organizationsGroup().node()?.getBoundingClientRect().height ?? 0;
+    const totalHeight = Math.max(this.svgHeight(), mapHeight + organizationsHeight + 36); // extra for padding
+    this.svgHeight.set(totalHeight);
   }
 
   private drawMap(geoJson: FeatureCollection): void {
