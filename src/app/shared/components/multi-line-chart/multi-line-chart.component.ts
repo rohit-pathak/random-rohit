@@ -10,7 +10,19 @@ import {
   viewChild
 } from '@angular/core';
 import { ResizeDirective } from "../../directives/resize.directive";
-import { axisBottom, brushX, D3BrushEvent, line, max, min, scaleLinear, scaleLog, select } from "d3";
+import {
+  axisBottom,
+  brushX,
+  D3BrushEvent,
+  leastIndex,
+  line,
+  max,
+  min,
+  pointer,
+  scaleLinear,
+  scaleLog,
+  select
+} from "d3";
 import { TooltipComponent } from "../tooltip/tooltip.component";
 
 @Component({
@@ -39,13 +51,22 @@ export class MultiLineChartComponent<T> {
   private readonly pointGropuRef = viewChild.required<ElementRef>('pointGroup');
   private readonly xAxisGroupRef = viewChild.required<ElementRef>('xAxisGroup');
   private readonly brushGroupRef = viewChild.required<ElementRef>('brushGroup');
+  private readonly svg = computed(() => select<SVGSVGElement, unknown>(this.svgRef().nativeElement));
   private readonly lineGroup = computed(() => select<SVGGElement, unknown>(this.lineGroupRef().nativeElement));
   private readonly pointGroup = computed(() => select<SVGGElement, unknown>(this.pointGropuRef().nativeElement));
   private readonly xAxisGroup = computed(() => select<SVGGElement, unknown>(this.xAxisGroupRef().nativeElement));
   private readonly brushGroup = computed(() => select<SVGGElement, unknown>(this.brushGroupRef().nativeElement));
+  private readonly isBrushing = signal(false);
+  private readonly hoverEvent = signal<Event | null>(null);
 
   protected readonly host = inject(ElementRef<HTMLElement>);
-  protected readonly tooltipEvent = signal<Event | null>(null);
+  protected readonly tooltipEvent = computed(() => {
+    if (this.isBrushing()) {
+      return null;
+    }
+    return this.hoverEvent();
+  });
+  protected readonly tooltipData = signal<TooltipDatum | null>(null);
   protected readonly dimensions = this.resize.dimensions;
   protected readonly padding = { top: 5, bottom: 20 };
   protected readonly height = computed(() => {
@@ -76,6 +97,20 @@ export class MultiLineChartComponent<T> {
       .x(d => this.xScale()(x(d)) ?? 0)
       .y(d => this.yScale()(y(d)) ?? 0);
   });
+  private readonly points = computed<PointDatum<T>[]>(() => {
+    const x = this.x();
+    const y = this.y();
+    return this.data().flatMap(lineData => {
+      return lineData.data.map(d => {
+        return {
+          lineName: lineData.name,
+          datum: d,
+          x: this.xScale()(x(d)),
+          y: this.yScale()(y(d)),
+        }
+      })
+    })
+  });
 
   private readonly xAxisGenerator = computed(() => axisBottom(this.xScale()).ticks(5)); // TODO: make ticks an input
   protected readonly axisTransform = computed(() => `translate(0, ${this.padding.top + this.height()})`);
@@ -97,7 +132,8 @@ export class MultiLineChartComponent<T> {
     this.drawLineChart();
     this.drawXAxis();
     this.drawPoints();
-    // this.addBrush();
+    this.addBrush();
+    this.handleTooltip();
   }
 
   private drawLineChart(): void {
@@ -114,25 +150,19 @@ export class MultiLineChartComponent<T> {
   }
 
   private drawPoints(): void {
-    const lines = this.data();
+    const points = this.points();
     const colorFn = this.colorFn();
-    const x = this.x();
-    const y = this.y();
-    const pointGroups = this.pointGroup()
-      .selectAll<SVGGElement, LineData<T>>('.points')
-      .data(lines, d => d.name)
-      .join('g')
-      .attr('class', 'points');
-    pointGroups
-      .selectAll('.point')
-      .data(lineData => lineData.data.map(d => ({name: lineData.name, datum: d})))
+    this.pointGroup()
+      .selectAll<SVGGElement, PointDatum<T>>('.point')
+      .data(points)
       .join('circle')
       .attr('class', 'point')
       .transition()
-      .attr('cx', d => this.xScale()(x(d.datum)))
-      .attr('cy', d => this.yScale()(y(d.datum)))
-      .attr('r', 2)
-      .attr('fill', d => colorFn(d.name));
+      .attr('cx', d => d.x)
+      .attr('cy', d => d.y)
+      .attr('r', 3)
+      .attr('fill', d => colorFn(d.lineName))
+      .attr('opacity', 0);
   }
 
   private drawXAxis(): void {
@@ -151,6 +181,12 @@ export class MultiLineChartComponent<T> {
   }
 
   private handleBrush(e: D3BrushEvent<unknown>): void {
+    if (e.type === 'start' || e.type === 'brush') {
+      this.isBrushing.set(true);
+    }
+    if (e.type === 'end') {
+      this.isBrushing.set(false);
+    }
     if (!e.selection) {
       this.brush.emit(null);
       return;
@@ -158,6 +194,34 @@ export class MultiLineChartComponent<T> {
     const range = e.selection as [number, number];
     const domain: [number, number] = [this.xScale().invert(range[0]), this.xScale().invert(range[1])];
     this.brush.emit({ domain, range });
+  }
+
+  handleTooltip(): void {
+    const points = this.points();
+    this.svg()
+      .on('pointermove', (event: PointerEvent) => {
+        const [x, y] = pointer(event);
+        // Ref: https://observablehq.com/@d3/multi-line-chart/2
+        const closestPointIndex = leastIndex(points, (point) => Math.hypot(x - point.x, y - point.y));
+        if (closestPointIndex === undefined) {
+          return;
+        }
+        const closestPoint = points[closestPointIndex];
+        this.pointGroup()
+          .selectAll<SVGCircleElement, PointDatum<T>>('.point')
+          .attr('opacity', d => d === closestPoint ? 1 : 0);
+        this.hoverEvent.set(event);
+        this.tooltipData.set({
+          title: `${this.x()(closestPoint.datum)}`,
+          value: `${closestPoint.lineName}: ${this.y()(closestPoint.datum)}`,
+        });
+      })
+      .on('pointerleave', () => {
+        this.pointGroup()
+          .selectAll('.point')
+          .attr('opacity', 0);
+        this.hoverEvent.set(null);
+      })
   }
 }
 
@@ -169,4 +233,16 @@ export interface LineData<T> {
 export interface BrushSpan {
   domain: [number, number]
   range: [number, number]
+}
+
+interface PointDatum<T> {
+  lineName: string;
+  datum: T
+  x: number;
+  y: number;
+}
+
+interface TooltipDatum {
+  title: string;
+  value: string;
 }
