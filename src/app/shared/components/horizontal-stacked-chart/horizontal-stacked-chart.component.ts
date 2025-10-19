@@ -1,6 +1,6 @@
 import { afterRenderEffect, Component, computed, ElementRef, inject, input, signal, viewChild } from '@angular/core';
 import { ResizeDirective } from "../../directives/resize.directive";
-import { axisLeft, scaleBand, scaleLinear, select, SeriesPoint, stack, stackOrderDescending } from "d3";
+import { axisLeft, scaleBand, scaleLog, select, SeriesPoint, stack, stackOrderDescending } from "d3";
 import { DomainDatum, NumberKeys } from "../chart.model";
 import { DecimalPipe } from "@angular/common";
 import { TooltipComponent } from "../tooltip/tooltip.component";
@@ -58,7 +58,7 @@ export class HorizontalStackedChartComponent<T> {
     const width = this.barWidth();
     const stackedData = this.stackedData();
     const maxStackVal = Math.max(...stackedData.flatMap(series => series.map(d => d[1])))
-    return scaleLinear([0, maxStackVal], [0, width]); // TODO: try log scale
+    return scaleLog([1, maxStackVal], [0, width]); // TODO: make scale configurable
   });
   private readonly barHeight = 20;
   private readonly bandScale = computed(() => {
@@ -183,12 +183,12 @@ export class HorizontalStackedChartComponent<T> {
       .on('mousemove', (event: Event) => this.tooltipEvent.set(event))
       .on('mouseout', () => this.onBarMouseout())
       // .transition()
-      .attr('x', (d) => this.xScale()(d.point[0]))
+      .attr('x', (d) => this.xScale()(d.point[0] || 1))
       .attr('y', (d) => {
         const label = this.labelFn()(d.point.data);
         return this.bandScale()(label) ?? null;
       })
-      .attr('width', (d) => this.xScale()(d.point[1]) - this.xScale()(d.point[0]))
+      .attr('width', (d) => this.xScale()(d.point[1] || 1) - this.xScale()(d.point[0] || 1))
       .attr('height', this.bandScale().bandwidth())
   }
 
