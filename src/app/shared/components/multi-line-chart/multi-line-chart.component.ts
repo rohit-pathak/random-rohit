@@ -71,11 +71,11 @@ export class MultiLineChartComponent<T> {
   protected readonly padding = { top: 5, bottom: 20, left: 10, right: 10 };
   protected readonly height = computed(() => {
     const h = this.dimensions().height;
-    return h - this.padding.top - this.padding.bottom;
+    return Math.max(0, h - this.padding.top - this.padding.bottom);
   });
   protected readonly width = computed(() => {
     const w = this.dimensions().width;
-    return w - this.padding.left - this.padding.right;
+    return Math.max(0, w - this.padding.left - this.padding.right);
   });
 
   private readonly xScale = computed(() => {
