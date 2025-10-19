@@ -60,7 +60,7 @@ export class HorizontalStackedChartComponent<T> {
     const maxStackVal = Math.max(...stackedData.flatMap(series => series.map(d => d[1])))
     return scaleLog([1, maxStackVal], [0, width]); // TODO: make scale configurable
   });
-  private readonly barHeight = 20;
+  private readonly barHeight = 15;
   private readonly bandScale = computed(() => {
     return scaleBand()
       .domain(this.data()?.map(d => this.labelFn()(d)) ?? [])
