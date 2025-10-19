@@ -6,6 +6,7 @@ import {
   LineData,
   MultiLineChartComponent
 } from "../../shared/components/multi-line-chart/multi-line-chart.component";
+import { CurrencyPipe } from "@angular/common";
 
 @Component({
   selector: 'app-total-transactions-line-chart',
@@ -14,10 +15,12 @@ import {
   ],
   templateUrl: './total-transactions-line-chart.component.html',
   styleUrl: './total-transactions-line-chart.component.scss',
+  providers: [CurrencyPipe],
   hostDirectives: [ResizeDirective],
 })
 export class TotalTransactionsLineChartComponent {
   private readonly store = inject(AidDataStore);
+  protected readonly currencyPipe = inject(CurrencyPipe);
   protected readonly lines = computed<LineData<YearTotal>[]>(() => {
     return [
       {
@@ -30,6 +33,7 @@ export class TotalTransactionsLineChartComponent {
   protected readonly y = (d: YearTotal) => d.amount;
   protected readonly xSpan = this.store.totalYearRange;
   protected readonly brushSpan = this.store.brushSpan;
+  protected readonly formatFn = (value: number) => this.currencyPipe.transform(value, 'USD', 'symbol', '1.0-0') ?? `${value}`;
 
   onBrush(span: BrushSpan | null): void  {
     if (!span) {

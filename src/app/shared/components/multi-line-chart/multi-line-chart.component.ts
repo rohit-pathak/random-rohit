@@ -24,6 +24,7 @@ import {
   select
 } from "d3";
 import { TooltipComponent } from "../tooltip/tooltip.component";
+import { DecimalPipe } from "@angular/common";
 
 @Component({
   selector: 'app-multi-line-chart',
@@ -32,6 +33,7 @@ import { TooltipComponent } from "../tooltip/tooltip.component";
   ],
   templateUrl: './multi-line-chart.component.html',
   styleUrl: './multi-line-chart.component.scss',
+  providers: [DecimalPipe],
   hostDirectives: [ResizeDirective]
 })
 export class MultiLineChartComponent<T> {
@@ -41,10 +43,12 @@ export class MultiLineChartComponent<T> {
   readonly xSpan = input<[number, number]>();
   readonly ySpan = input<[number, number]>();
   readonly colorFn = input<(name: string) => string>(() => '#bbb');
+  readonly formatFn = input<((value: number) => string)>((value: number) => `${this.decimalPipe.transform(value)}`);
   readonly brushSpan = input<[number, number] | null>();
 
   readonly brush = output<BrushSpan | null>();
 
+  private readonly decimalPipe = inject(DecimalPipe);
   private readonly resize = inject(ResizeDirective);
   private readonly svgRef = viewChild.required<ElementRef>('lineChart');
   private readonly lineGroupRef = viewChild.required<ElementRef>('lineGroup');
@@ -232,7 +236,8 @@ export class MultiLineChartComponent<T> {
         this.hoverEvent.set(event);
         this.tooltipData.set({
           title: `${this.x()(closestPoint.datum)}`,
-          value: `${closestPoint.lineName}: ${this.y()(closestPoint.datum)}`,
+          lineName: `${closestPoint.lineName}`,
+          value: this.formatFn()(this.y()(closestPoint.datum)),
         });
       })
       .on('pointerleave', () => {
@@ -265,5 +270,6 @@ interface PointDatum<T> {
 
 interface TooltipDatum {
   title: string;
+  lineName: string;
   value: string;
 }

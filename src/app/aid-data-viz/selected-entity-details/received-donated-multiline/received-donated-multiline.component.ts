@@ -6,6 +6,7 @@ import {
   MultiLineChartComponent
 } from "../../../shared/components/multi-line-chart/multi-line-chart.component";
 import { scaleOrdinal, schemeRdBu } from "d3";
+import { CurrencyPipe } from "@angular/common";
 
 @Component({
   selector: 'app-received-donated-multiline',
@@ -14,9 +15,12 @@ import { scaleOrdinal, schemeRdBu } from "d3";
   ],
   templateUrl: './received-donated-multiline.component.html',
   styleUrl: './received-donated-multiline.component.scss',
+  providers: [CurrencyPipe],
 })
 export class ReceivedDonatedMultilineComponent {
+  protected readonly currencyPipe = inject(CurrencyPipe);
   private readonly store = inject(AidDataStore);
+  protected readonly formatFn = (value: number) => this.currencyPipe.transform(value, 'USD', 'symbol', '1.0-0') ?? `${value}`;
 
   // shared chart component inputs
   protected readonly lines = computed<LineData<YearTotal>[]>(() => {

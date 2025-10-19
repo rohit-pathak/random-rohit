@@ -1,4 +1,4 @@
 <h3>Total transactions over time</h3>
-<app-multi-line-chart [data]="lines()" [x]="x" [y]="y" [xSpan]="xSpan()"
+<app-multi-line-chart [data]="lines()" [x]="x" [y]="y" [xSpan]="xSpan()" [formatFn]="formatFn"
                       (brush)="onBrush($event)" [brushSpan]="brushSpan()"
 />
