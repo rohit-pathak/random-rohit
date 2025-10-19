@@ -1,11 +1,14 @@
 @if (isEmpty()) {
   <small class="text-secondary">No data to display</small>
 }
-<svg #svg [attr.width]="dimensions().width" [attr.height]="height()"
+<svg #svg [attr.width]="dimensions().width" [attr.height]="svgHeight()"
      [style.visibility]="isEmpty() ? 'hidden': 'visible'">
-  <g #labelGroup [attr.transform]="axisTransform()"></g>
-  <g #hoverGroup [attr.transform]="axisTransform()"></g>
-  <g #barGroup [attr.transform]="axisTransform()"></g>
+  <g #chart [attr.transform]="chartGroupTransform">
+    <g #xAxisGroup [attr.transform]="axisTransform()"></g>
+    <g #labelGroup [attr.transform]="axisTransform()"></g>
+    <g #hoverGroup [attr.transform]="axisTransform()"></g>
+    <g #barGroup [attr.transform]="axisTransform()"></g>
+  </g>
 </svg>
 @let tooltip = tooltipData();
 <app-tooltip [triggerEvent]="tooltipEvent()" [target]="host.nativeElement">

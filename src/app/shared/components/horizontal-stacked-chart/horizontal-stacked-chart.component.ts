@@ -1,6 +1,6 @@
 import { afterRenderEffect, Component, computed, ElementRef, inject, input, signal, viewChild } from '@angular/core';
 import { ResizeDirective } from "../../directives/resize.directive";
-import { axisLeft, scaleBand, scaleLog, select, SeriesPoint, stack, stackOrderDescending } from "d3";
+import { axisLeft, axisTop, scaleBand, scaleLog, select, SeriesPoint, stack, stackOrderDescending } from "d3";
 import { DomainDatum, NumberKeys } from "../chart.model";
 import { DecimalPipe } from "@angular/common";
 import { TooltipComponent } from "../tooltip/tooltip.component";
@@ -27,18 +27,25 @@ export class HorizontalStackedChartComponent<T> {
     return !data || (data.length === 0);
   })
   protected readonly dimensions = inject(ResizeDirective).dimensions;
+  private readonly padding = { top: 20, bottom: 5};
   protected readonly height = computed(() =>
     Math.max(this.barHeight, (this.data()?.length ?? 0) * this.barHeight));
+  protected readonly svgHeight = computed(() => this.height() + this.padding.top + this.padding.bottom);
+  protected readonly chartGroupTransform = `translate(0, ${this.padding.top})`;
 
   private readonly labelWidth = computed(() => Math.floor(0.3 * this.dimensions().width));
   private readonly barWidth = computed(() => this.dimensions().width - this.labelWidth());
   protected readonly axisTransform = computed(() => `translate(${this.labelWidth()}, 0)`);
 
   private readonly svgRef = viewChild.required<ElementRef>('svg');
+  private readonly chartGroupRef = viewChild.required<ElementRef>('chart');
+  private readonly xAxisGroupRef = viewChild.required<ElementRef>('xAxisGroup');
   private readonly labelGroupRef = viewChild.required<ElementRef>('labelGroup');
   private readonly hoverGroupRef = viewChild.required<ElementRef>('hoverGroup');
   private readonly barGroupRef = viewChild.required<ElementRef>('barGroup');
   private readonly svg = computed(() => select<SVGSVGElement, unknown>(this.svgRef().nativeElement));
+  private readonly chartGroup = computed(() => select<SVGGElement, unknown>(this.chartGroupRef().nativeElement));
+  private readonly xAxisGroup = computed(() => select<SVGGElement, unknown>(this.xAxisGroupRef().nativeElement));
   private readonly labelGroup = computed(() => select<SVGGElement, unknown>(this.labelGroupRef().nativeElement));
   private readonly hoverGroup = computed(() => select<SVGGElement, unknown>(this.hoverGroupRef().nativeElement));
   private readonly barGroup = computed(() => select<SVGGElement, unknown>(this.barGroupRef().nativeElement))
@@ -69,6 +76,7 @@ export class HorizontalStackedChartComponent<T> {
       .padding(0.1);
   });
   private readonly labelAxis = computed(() => axisLeft(this.bandScale()));
+  protected readonly xAxis = computed(() => axisTop(this.xScale()));
 
   protected readonly host = inject(ElementRef<HTMLElement>);
   protected readonly tooltipEvent = signal<Event | null>(null);
@@ -98,12 +106,18 @@ export class HorizontalStackedChartComponent<T> {
     this.drawHoverBars();
     this.drawStackedBars();
     this.drawLabels();
+    this.drawValueAxis();
   }
 
   private drawLabels(): void {
     this.labelGroup()
       .call(this.labelAxis()) // TODO: transition axis
     this.truncateLabelText();
+  }
+  private drawValueAxis(): void {
+    this.xAxisGroup()
+      .transition()
+      .call(this.xAxis());
   }
 
   private truncateLabelText(): void {
