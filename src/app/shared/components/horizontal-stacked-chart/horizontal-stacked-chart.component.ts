@@ -27,14 +27,16 @@ export class HorizontalStackedChartComponent<T> {
     return !data || (data.length === 0);
   })
   protected readonly dimensions = inject(ResizeDirective).dimensions;
-  private readonly padding = { top: 20, bottom: 5};
+  private readonly padding = { top: 20, bottom: 5, left: 5, right: 10};
   protected readonly height = computed(() =>
     Math.max(this.barHeight, (this.data()?.length ?? 0) * this.barHeight));
+  protected readonly width = computed(() =>
+    Math.max(0, this.dimensions().width - this.padding.left - this.padding.right));
   protected readonly svgHeight = computed(() => this.height() + this.padding.top + this.padding.bottom);
-  protected readonly chartGroupTransform = `translate(0, ${this.padding.top})`;
+  protected readonly chartGroupTransform = `translate(${this.padding.left}, ${this.padding.top})`;
 
-  private readonly labelWidth = computed(() => Math.floor(0.3 * this.dimensions().width));
-  private readonly barWidth = computed(() => this.dimensions().width - this.labelWidth());
+  private readonly labelWidth = computed(() => Math.floor(0.3 * this.width()));
+  private readonly barWidth = computed(() => this.width() - this.labelWidth());
   protected readonly axisTransform = computed(() => `translate(${this.labelWidth()}, 0)`);
 
   private readonly svgRef = viewChild.required<ElementRef>('svg');
@@ -76,7 +78,10 @@ export class HorizontalStackedChartComponent<T> {
       .padding(0.1);
   });
   private readonly labelAxis = computed(() => axisLeft(this.bandScale()));
-  protected readonly xAxis = computed(() => axisTop(this.xScale()));
+  protected readonly xAxis = computed(() =>
+    axisTop(this.xScale())
+      .ticks(this.width() / 80)
+  );
 
   protected readonly host = inject(ElementRef<HTMLElement>);
   protected readonly tooltipEvent = signal<Event | null>(null);
