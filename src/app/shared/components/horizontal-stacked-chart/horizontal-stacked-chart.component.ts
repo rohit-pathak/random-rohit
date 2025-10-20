@@ -13,14 +13,18 @@ import { TooltipComponent } from "../tooltip/tooltip.component";
   ],
   templateUrl: './horizontal-stacked-chart.component.html',
   styleUrl: './horizontal-stacked-chart.component.scss',
+  providers: [DecimalPipe],
   hostDirectives: [ResizeDirective],
 })
 export class HorizontalStackedChartComponent<T> {
   readonly data = input.required<T[] | null>();
   readonly labelFn = input.required<(d: T) => string>();
+  readonly valueFormatFn = input<((value: number) => string)>((value: number) => `${this.decimalPipe.transform(value)}`);
   readonly groups = input.required<Extract<NumberKeys<T>, string>[]>();
   // TODO: consider a default color scale if not provided
   readonly colorFn = input.required<(key: string) => string>();
+
+  private readonly decimalPipe = inject(DecimalPipe);
 
   protected readonly isEmpty = computed(() => {
     const data = this.data();
@@ -94,7 +98,7 @@ export class HorizontalStackedChartComponent<T> {
     return {
       title: this.labelFn()(selectedDatum),
       groups: this.groups().map(key => {
-        return { name: key, value: selectedDatum[key] as number };
+        return { name: key, value: this.valueFormatFn()(selectedDatum[key] as number)};
       })
     };
   });
@@ -226,7 +230,7 @@ export class HorizontalStackedChartComponent<T> {
 
 interface TooltipDatum {
   title: string;
-  groups: { name: string, value: number }[];
+  groups: { name: string, value: string }[];
 }
 
 /**

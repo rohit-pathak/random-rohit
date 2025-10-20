@@ -14,6 +14,6 @@
 <app-tooltip [triggerEvent]="tooltipEvent()" [target]="host.nativeElement">
   <ng-container tooltip-header>{{ tooltip?.title }}</ng-container>
   @for (group of tooltip?.groups; track $index) {
-    <div>{{ group.name }} - {{ group.value | number }}</div>
+    <div>{{ group.name }} - {{ group.value }}</div>
   }
 </app-tooltip>

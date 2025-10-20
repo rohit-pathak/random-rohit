@@ -3,6 +3,7 @@ import { AidDataStore, EntityTransactionTotal } from "../../aid-data.store";
 import {
   HorizontalStackedChartComponent
 } from "../../../shared/components/horizontal-stacked-chart/horizontal-stacked-chart.component";
+import { CurrencyPipe } from "@angular/common";
 
 @Component({
   selector: 'app-transactions-grouped',
@@ -10,11 +11,14 @@ import {
     HorizontalStackedChartComponent
   ],
   templateUrl: './transactions-grouped.component.html',
-  styleUrl: './transactions-grouped.component.scss'
+  styleUrl: './transactions-grouped.component.scss',
+  providers: [CurrencyPipe],
 })
 export class TransactionsGroupedComponent {
   private readonly store = inject(AidDataStore);
+  protected readonly currencyPipe = inject(CurrencyPipe);
 
+  protected readonly formatFn = (value: number) => this.currencyPipe.transform(value, 'USD', 'symbol', '1.0-0') ?? `${value}`;
   protected readonly selectedEntityGroupedTransactions = this.store.selectedEntityGroupedTransactions;
   protected readonly sortedTransactions = computed(() => {
     const transactions = this.selectedEntityGroupedTransactions();
