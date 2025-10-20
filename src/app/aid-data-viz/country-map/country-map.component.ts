@@ -163,6 +163,7 @@ export class CountryMapComponent {
       .data(data, d => d.data.name)
       .join('g')
       .attr('class', 'symbol')
+      .style('cursor', 'pointer')
       .attr('transform', d => `translate(${d.centroid.join(',')})`) // TODO: check if centroid vals are defined
       .attr('opacity', this.defaultOpacity);
     symbolGroups

@@ -19,3 +19,16 @@
     margin-top: 2rem;
   }
 }
+
+@media (max-width: 768px) {
+  :host {
+    .charts {
+      flex-direction: column;
+      gap: 1rem;
+
+      .details-container {
+        width: 100%;
+      }
+    }
+  }
+}
