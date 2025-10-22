@@ -7,6 +7,7 @@ import {
 } from "./total-transactions-line-chart/total-transactions-line-chart.component";
 import { SelectedEntityDetailsComponent } from "./selected-entity-details/selected-entity-details.component";
 import { MatSlideToggle, MatSlideToggleChange } from "@angular/material/slide-toggle";
+import { MatProgressSpinner } from "@angular/material/progress-spinner";
 
 @Component({
   selector: 'app-aid-data-viz',
@@ -14,7 +15,8 @@ import { MatSlideToggle, MatSlideToggleChange } from "@angular/material/slide-to
     CountryMapComponent,
     TotalTransactionsLineChartComponent,
     SelectedEntityDetailsComponent,
-    MatSlideToggle
+    MatSlideToggle,
+    MatProgressSpinner
   ],
   templateUrl: './aid-data-viz.component.html',
   styleUrl: './aid-data-viz.component.scss',
@@ -22,6 +24,8 @@ import { MatSlideToggle, MatSlideToggleChange } from "@angular/material/slide-to
 })
 export class AidDataVizComponent implements OnInit {
   private store = inject(AidDataStore);
+
+  protected readonly isLoading = this.store.isLoading;
 
   ngOnInit(): void {
     this.store.loadMap();

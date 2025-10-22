@@ -81,7 +81,7 @@ export class CountryMapComponent {
     const dataByOrg = this.aidDataStore.dataByEntityInRange();
     const width = this.dimensions().width;
     const circleBoxWidth = this.maxCircleRadius * 2 + 2;
-    const circlesPerRow = Math.floor(width / (circleBoxWidth));
+    const circlesPerRow = Math.max(Math.floor(width / (circleBoxWidth)), 1);
     const data: SymbolDatum[] = organizations
       .filter(org => dataByOrg.has(org))
       .map((org, i) => {

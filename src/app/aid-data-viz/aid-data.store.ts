@@ -6,9 +6,10 @@ import { computed, inject, Injectable } from "@angular/core";
 import { tapResponse } from "@ngrx/operators";
 import { FeatureCollection } from "geojson";
 import { max, min, scaleOrdinal, schemeRdBu } from "d3";
+import { tap } from "rxjs/operators";
 
 interface AidDataState {
-  isLoading: boolean;
+  isDataLoading: boolean;
   isMapLoading: boolean;
   error: string | null;
   countriesGeoJson: FeatureCollection | null;
@@ -23,7 +24,7 @@ interface AidDataState {
 export class AidDataStore {
   private readonly aidDataService = inject(AidDataService);
   private readonly state = signalState<AidDataState>({
-    isLoading: false,
+    isDataLoading: false,
     isMapLoading: false,
     error: null,
     data: [],
@@ -35,7 +36,7 @@ export class AidDataStore {
   });
 
   // state properties
-  readonly isLoading = this.state.isLoading;
+  readonly isDataLoading= this.state.isDataLoading;
   readonly isMapLoading = this.state.isMapLoading;
   readonly error = this.state.error;
   readonly data = this.state.data;
@@ -53,6 +54,7 @@ export class AidDataStore {
   // Don't throttle brushSpan so that visually the brushing looks synchronized across charts.
 
   // computed properties
+  readonly isLoading = computed(() => this.state.isDataLoading() || this.state.isMapLoading());
   readonly mapCountries = computed<Set<string>>(() => {
     const geoJson = this.countriesGeoJson();
     if (!geoJson) {
@@ -162,6 +164,7 @@ export class AidDataStore {
   // methods
   readonly loadMap = rxMethod<void>(
     pipe(
+      tap(() => patchState(this.state, { isMapLoading: true })),
       switchMap(() => {
         return this.aidDataService.getCountriesMap().pipe(
           tapResponse(
@@ -180,15 +183,16 @@ export class AidDataStore {
 
   readonly loadData = rxMethod<void>(
     pipe(
+      tap(() => patchState(this.state, { isDataLoading: true })),
       switchMap(() => {
         return this.aidDataService.getTransactionData().pipe(
           tapResponse(
             res => {
-              patchState(this.state, { isLoading: false, data: res });
+              patchState(this.state, { isDataLoading: false, data: res });
             },
             err => {
               console.error('Failed to load aid transactions', err);
-              patchState(this.state, { isLoading: false, error: 'Failed to load transaction data' });
+              patchState(this.state, { isDataLoading: false, error: 'Failed to load transaction data' });
             }
           )
         );

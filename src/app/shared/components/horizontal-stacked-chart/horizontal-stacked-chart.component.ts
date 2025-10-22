@@ -8,7 +8,6 @@ import { TooltipComponent } from "../tooltip/tooltip.component";
 @Component({
   selector: 'app-horizontal-stacked-chart',
   imports: [
-    DecimalPipe,
     TooltipComponent
   ],
   templateUrl: './horizontal-stacked-chart.component.html',
