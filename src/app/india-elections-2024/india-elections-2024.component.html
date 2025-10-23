@@ -13,17 +13,21 @@
     seats.
   </p>
 </div>
-<div class="charts">
-  <section class="left">
-    <app-constituencies-map (constituencyClick)="onConstituencyClick($event)" [highlight]="highlightConstituencies()"/>
-    <small>
-      Source: <a href="https://results.eci.gov.in/PcResultGenJune2024/index.htm" target="_blank">Election Commission of
-      India</a>
-    </small>
-  </section>
-  <section class="right">
-    <app-total-stats (partyHover)="onPartyHover($event)"/>
-    <mat-divider/>
-    <app-constituency-detail [constituency]="selectedConstituency()"/>
-  </section>
-</div>
+@if (isLoading()) {
+  <mat-spinner />
+} @else {
+  <div class="charts">
+    <section class="left">
+      <app-constituencies-map (constituencyClick)="onConstituencyClick($event)" [highlight]="highlightConstituencies()"/>
+      <small>
+        Source: <a href="https://results.eci.gov.in/PcResultGenJune2024/index.htm" target="_blank">Election Commission of
+        India</a>
+      </small>
+    </section>
+    <section class="right">
+      <app-total-stats (partyHover)="onPartyHover($event)"/>
+      <mat-divider/>
+      <app-constituency-detail [constituency]="selectedConstituency()"/>
+    </section>
+  </div>
+}
