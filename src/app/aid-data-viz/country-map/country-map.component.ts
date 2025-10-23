@@ -130,7 +130,7 @@ export class CountryMapComponent {
     this.handleSymbolInteractivity();
 
     const organizationsHeight = this.organizationsGroup().node()?.getBoundingClientRect().height ?? 0;
-    const totalHeight = Math.max(this.svgHeight(), mapHeight + organizationsHeight + 36); // extra for padding
+    const totalHeight = Math.ceil(mapHeight + organizationsHeight + 36); // extra for padding
     this.svgHeight.set(totalHeight);
   }
 
