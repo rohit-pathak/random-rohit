@@ -22,7 +22,7 @@ export class HomeComponent {
       route: '/resize-with-directives'
     },
     {
-      date: new Date('2025-06-19'),
+      date: new Date('2025-10-23'),
       title: 'International Aid Transaction Patterns',
       route: '/aid-data-viz',
     }
