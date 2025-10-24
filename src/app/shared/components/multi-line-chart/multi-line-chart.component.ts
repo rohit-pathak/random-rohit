@@ -11,7 +11,7 @@ import {
 } from '@angular/core';
 import { ResizeDirective } from "../../directives/resize.directive";
 import {
-  axisBottom,
+  axisBottom, axisLeft,
   brushX,
   D3BrushEvent,
   leastIndex,
@@ -54,11 +54,13 @@ export class MultiLineChartComponent<T> {
   private readonly lineGroupRef = viewChild.required<ElementRef>('lineGroup');
   private readonly pointGropuRef = viewChild.required<ElementRef>('pointGroup');
   private readonly xAxisGroupRef = viewChild.required<ElementRef>('xAxisGroup');
+  private readonly yAxisGroupRef = viewChild.required<ElementRef>('yAxisGroup');
   private readonly brushGroupRef = viewChild.required<ElementRef>('brushGroup');
   private readonly svg = computed(() => select<SVGSVGElement, unknown>(this.svgRef().nativeElement));
   private readonly lineGroup = computed(() => select<SVGGElement, unknown>(this.lineGroupRef().nativeElement));
   private readonly pointGroup = computed(() => select<SVGGElement, unknown>(this.pointGropuRef().nativeElement));
   private readonly xAxisGroup = computed(() => select<SVGGElement, unknown>(this.xAxisGroupRef().nativeElement));
+  private readonly yAxisGroup = computed(() => select<SVGGElement, unknown>(this.yAxisGroupRef().nativeElement));
   private readonly brushGroup = computed(() => select<SVGGElement, unknown>(this.brushGroupRef().nativeElement));
   private readonly isBrushing = signal(false);
   private readonly hoverEvent = signal<Event | null>(null);
@@ -72,7 +74,7 @@ export class MultiLineChartComponent<T> {
   });
   protected readonly tooltipData = signal<TooltipDatum | null>(null);
   protected readonly dimensions = this.resize.dimensions;
-  protected readonly padding = { top: 5, bottom: 20, left: 10, right: 10 };
+  protected readonly padding = { top: 5, bottom: 20, left: 35, right: 10 };
   protected readonly height = computed(() => {
     const h = this.dimensions().height;
     return Math.max(0, h - this.padding.top - this.padding.bottom);
@@ -121,6 +123,7 @@ export class MultiLineChartComponent<T> {
   });
 
   private readonly xAxisGenerator = computed(() => axisBottom(this.xScale()).ticks(5)); // TODO: make ticks an input
+  private readonly yAxisGenerator = computed(() => axisLeft(this.yScale()).ticks(this.height() / 30)); // TODO: make ticks dynamic
   protected readonly chartTransform = computed(() => `translate(${this.padding.left}, ${this.padding.top})`);
   protected readonly axisTransform = computed(() => `translate(0, ${this.height()})`);
 
@@ -144,7 +147,7 @@ export class MultiLineChartComponent<T> {
       return;
     }
     this.drawLineChart();
-    this.drawXAxis();
+    this.drawAxes();
     this.drawPoints();
     this.addBrush();
     this.handleTooltip();
@@ -183,8 +186,9 @@ export class MultiLineChartComponent<T> {
       .attr('opacity', 0);
   }
 
-  private drawXAxis(): void {
-    this.xAxisGroup().call(this.xAxisGenerator());
+  private drawAxes(): void {
+    this.xAxisGroup().transition().call(this.xAxisGenerator());
+    this.yAxisGroup().transition().call(this.yAxisGenerator());
   }
 
   private addBrush(): void {
