@@ -61,7 +61,7 @@ export class CountryMapComponent {
   private readonly arcGenerator = arc<PieArcDatum<TransactionPieDatum>>()
     .innerRadius(0)
     .outerRadius(this.maxCircleRadius);
-  private readonly transitionDuration = computed(() => this.aidDataStore.shouldAnimate() ? 1000 : 0);
+  // private readonly transitionDuration = computed(() => this.aidDataStore.shouldAnimate() ? 1000 : 0);
 
   private readonly symbolCountryData = computed<SymbolDatum[]>(() => {
     const dataByCountry = this.aidDataStore.dataByEntityInRange();
@@ -243,7 +243,7 @@ export class CountryMapComponent {
       }, new Map<string, SymbolDatum>);
     const adjustOffset = (symbolName: string, y: number) => y + (organizationSet.has(symbolName) ? orgGroupOffset : 0)
 
-    this.transactionLinesGroup()
+    let donatedLines = this.transactionLinesGroup()
       .selectAll<SVGLineElement, SymbolDatum>('.donated-line')
       .data(donatedTo)
       .join('line')
@@ -252,14 +252,18 @@ export class CountryMapComponent {
       .attr('y1', () => adjustOffset(datum.data.name, datum.centroid[1]))
       .attr('x2', () => datum.centroid[0])
       .attr('y2', () => adjustOffset(datum.data.name, datum.centroid[1]))
-      .style('pointer-events', 'none')
-      .transition()
-      .duration(this.transitionDuration())
+      .style('pointer-events', 'none');
+    if (this.aidDataStore.shouldAnimate()) {
+      donatedLines = donatedLines
+        .transition()
+        .duration(1000) as unknown as typeof donatedLines; // TODO: this is a type hack
+    }
+    donatedLines
       .attr('x2', d => symbolCentroids.get(d)!.centroid[0])
       .attr('y2', d => adjustOffset(d, symbolCentroids.get(d)!.centroid[1]))
       .attr('stroke', this.colorScale('donated'))
       .attr('stroke-width', '0.02rem');
-    this.transactionLinesGroup()
+    let receivedLines = this.transactionLinesGroup()
       .selectAll<SVGLineElement, SymbolDatum>('.received-line')
       .data(receivedFrom)
       .join('line')
@@ -268,9 +272,13 @@ export class CountryMapComponent {
       .attr('y1', d => adjustOffset(d, symbolCentroids.get(d)!.centroid[1]))
       .attr('x2', d => symbolCentroids.get(d)!.centroid[0])
       .attr('y2', d => adjustOffset(d, symbolCentroids.get(d)!.centroid[1]))
-      .style('pointer-events', 'none')
-      .transition()
-      .duration(this.transitionDuration())
+      .style('pointer-events', 'none');
+    if (this.aidDataStore.shouldAnimate()) {
+      receivedLines = receivedLines
+        .transition()
+        .duration(1000) as unknown as typeof receivedLines // TODO: type hack, find better solution
+    }
+    receivedLines
       .attr('x2', () => datum.centroid[0])
       .attr('y2', () => adjustOffset(datum.data.name, datum.centroid[1]))
       .attr('stroke', this.colorScale('received'))
