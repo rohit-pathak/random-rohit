@@ -1,0 +1,10 @@
+:host {
+  display: block;
+  position: relative;
+  width: 100%;
+  min-width: 0;
+
+  app-multi-line-chart {
+    height: 100px;
+  }
+}

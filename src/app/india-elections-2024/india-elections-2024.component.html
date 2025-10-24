@@ -1,7 +1,7 @@
 <h1>2024 Indian Parliamentary Election Results</h1>
 <div class="description">
   <p>
-    This visualization shows the results of the Indian Lok Sabha elections of 2024.
+    This visualization shows the results of the Indian Lok Sabha elections of 2024. It's an attempt at providing an interactive alternative to how the results are presented on the <a href="https://results.eci.gov.in/PcResultGenJune2024/index.htm" target="_blank">official Election Commission website</a>.
   </p>
   <p>
     The National Democratic Alliance (NDA) coalition led by the Bharatiya Janata Party (BJP) won a total of 293 seats
@@ -12,18 +12,24 @@
     The INDI Alliance (I.N.D.I.A.) led by the Indian National Congress (INC) won 234 seats, with the INC winning 99
     seats.
   </p>
+  <p>The map shows us that the BJP and Congress are the only 2 parties with a pan-India presence.</p>
+  <p>Click on a constituency in the map to reveal more details about it.</p>
 </div>
-<div class="charts">
-  <section class="left">
-    <app-constituencies-map (constituencyClick)="onConstituencyClick($event)" [highlight]="highlightConstituencies()"/>
-    <small>
-      Source: <a href="https://results.eci.gov.in/PcResultGenJune2024/index.htm" target="_blank">Election Commission of
-      India</a>
-    </small>
-  </section>
-  <section class="right">
-    <app-total-stats (partyHover)="onPartyHover($event)"/>
-    <mat-divider/>
-    <app-constituency-detail [constituency]="selectedConstituency()"/>
-  </section>
-</div>
+@if (isLoading()) {
+  <mat-spinner />
+} @else {
+  <div class="charts">
+    <section class="left">
+      <app-constituencies-map (constituencyClick)="onConstituencyClick($event)" [highlight]="highlightConstituencies()"/>
+      <small>
+        Source: <a href="https://results.eci.gov.in/PcResultGenJune2024/index.htm" target="_blank">Election Commission of
+        India</a>
+      </small>
+    </section>
+    <section class="right">
+      <app-total-stats (partyHover)="onPartyHover($event)"/>
+      <mat-divider/>
+      <app-constituency-detail [constituency]="selectedConstituency()"/>
+    </section>
+  </div>
+}

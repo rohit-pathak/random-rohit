@@ -6,7 +6,7 @@ import { ResizeWithDirectiveComponent } from "./posts/resize-with-directive/resi
 
 export const routes: Routes = [
   { path: 'home', component: HomeComponent },
-  { path: 'aid-data', component: AidDataVizComponent },
+  { path: 'aid-data-viz', component: AidDataVizComponent },
   { path: 'india-elections-2024', component: IndiaElections2024Component },
   { path: 'resize-with-directives', component: ResizeWithDirectiveComponent },
   { path: '', redirectTo: 'home', pathMatch: 'full' },

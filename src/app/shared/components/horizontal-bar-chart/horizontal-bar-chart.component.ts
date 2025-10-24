@@ -26,6 +26,7 @@ import {
 } from "d3";
 import { CommonModule } from "@angular/common";
 import { ResizeDirective } from "../../directives/resize.directive";
+import { DomainDatum } from "../chart.model";
 
 @Component({
   selector: 'app-horizontal-bar-chart',
@@ -252,5 +253,3 @@ export class HorizontalBarChartComponent<T> implements AfterViewInit {
   }
 
 }
-
-type DomainDatum<T> = T & { toString(): string } & AxisDomain;

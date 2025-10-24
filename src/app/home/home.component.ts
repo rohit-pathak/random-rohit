@@ -20,6 +20,11 @@ export class HomeComponent {
       date: new Date('2025-05-03'),
       title: 'Resize Directives',
       route: '/resize-with-directives'
+    },
+    {
+      date: new Date('2025-10-23'),
+      title: 'International Aid Transaction Patterns',
+      route: '/aid-data-viz',
     }
   ].sort((a, b) => +b.date - +a.date);
 }

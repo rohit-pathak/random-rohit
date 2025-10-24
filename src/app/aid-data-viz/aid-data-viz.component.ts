@@ -1,11 +1,39 @@
-import { Component } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
+import { AidDataStore } from './aid-data.store';
+import { AidDataService } from './aid-data.service';
+import { CountryMapComponent } from "./country-map/country-map.component";
+import {
+  TotalTransactionsLineChartComponent
+} from "./total-transactions-line-chart/total-transactions-line-chart.component";
+import { SelectedEntityDetailsComponent } from "./selected-entity-details/selected-entity-details.component";
+import { MatSlideToggle, MatSlideToggleChange } from "@angular/material/slide-toggle";
+import { MatProgressSpinner } from "@angular/material/progress-spinner";
 
 @Component({
   selector: 'app-aid-data-viz',
-  imports: [],
+  imports: [
+    CountryMapComponent,
+    TotalTransactionsLineChartComponent,
+    SelectedEntityDetailsComponent,
+    MatSlideToggle,
+    MatProgressSpinner
+  ],
   templateUrl: './aid-data-viz.component.html',
-  styleUrl: './aid-data-viz.component.scss'
+  styleUrl: './aid-data-viz.component.scss',
+  providers: [AidDataService, AidDataStore],
 })
-export class AidDataVizComponent {
+export class AidDataVizComponent implements OnInit {
+  private store = inject(AidDataStore);
+
+  protected readonly isLoading = this.store.isLoading;
+
+  ngOnInit(): void {
+    this.store.loadMap();
+    this.store.loadData();
+  }
+
+  onAnimationChange(change: MatSlideToggleChange): void {
+    this.store.setAnimate(change.checked);
+  }
 
 }

@@ -104,6 +104,7 @@ export const ElectionDataStore = signalStore(
                     constituencies2024Map: mapData,
                     constituencies,
                     constituencyResults,
+                    isLoading: false,
                   });
                 },
                 (error) => {

@@ -7,6 +7,7 @@ import { ConstituencyDetailComponent } from "./components/constituency-detail/co
 import { Constituency } from "./models/models";
 import { TotalStatsComponent } from "./components/total-stats/total-stats.component";
 import { MatDivider } from "@angular/material/divider";
+import { MatProgressSpinner } from "@angular/material/progress-spinner";
 
 @Component({
   selector: 'app-india-elections-2024',
@@ -14,7 +15,8 @@ import { MatDivider } from "@angular/material/divider";
     ConstituenciesMapComponent,
     ConstituencyDetailComponent,
     TotalStatsComponent,
-    MatDivider
+    MatDivider,
+    MatProgressSpinner
   ],
   providers: [ElectionDataService, ElectionDataStore, ColorScaleService],
   templateUrl: './india-elections-2024.component.html',
@@ -24,9 +26,10 @@ import { MatDivider } from "@angular/material/divider";
 export class IndiaElections2024Component implements OnInit {
   private electionDataStore = inject(ElectionDataStore);
 
-  selectedConstituency = signal<Constituency | null>(null);
-  hoveredParties = signal<string[] | null>(null);
-  highlightConstituencies = computed<Constituency[] | null>(() => {
+  protected readonly isLoading = this.electionDataStore.isLoading;
+  protected readonly selectedConstituency = signal<Constituency | null>(null);
+  protected readonly hoveredParties = signal<string[] | null>(null);
+  protected readonly highlightConstituencies = computed<Constituency[] | null>(() => {
     const parties = this.hoveredParties();
     if (!parties) {
       return null;
