@@ -1,6 +1,6 @@
 import { afterRenderEffect, Component, computed, ElementRef, inject, input, signal, viewChild } from '@angular/core';
 import { ResizeDirective } from "../../directives/resize.directive";
-import { axisLeft, axisTop, scaleBand, scaleLog, select, SeriesPoint, stack, stackOrderDescending } from "d3";
+import { axisLeft, axisTop, scaleBand, scaleLinear, select, SeriesPoint, stack, stackOrderDescending } from "d3";
 import { DomainDatum, NumberKeys } from "../chart.model";
 import { DecimalPipe } from "@angular/common";
 import { TooltipComponent } from "../tooltip/tooltip.component";
@@ -70,7 +70,7 @@ export class HorizontalStackedChartComponent<T> {
     const width = this.barWidth();
     const stackedData = this.stackedData();
     const maxStackVal = Math.max(...stackedData.flatMap(series => series.map(d => d[1])))
-    return scaleLog([1, maxStackVal], [0, width]); // TODO: make scale configurable
+    return scaleLinear([0, maxStackVal], [0, width]); // TODO: make scale configurable
   });
   private readonly barHeight = 15;
   private readonly bandScale = computed(() => {
@@ -83,7 +83,7 @@ export class HorizontalStackedChartComponent<T> {
   private readonly labelAxis = computed(() => axisLeft(this.bandScale()));
   protected readonly xAxis = computed(() =>
     axisTop(this.xScale())
-      .ticks(this.width() / 80)
+      .ticks(this.width() / 80, '.0s') // TODO: make format an optional input
   );
 
   protected readonly host = inject(ElementRef<HTMLElement>);
