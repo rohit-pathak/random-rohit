@@ -18,10 +18,12 @@ import { TooltipComponent } from "../tooltip/tooltip.component";
 export class HorizontalStackedChartComponent<T> {
   readonly data = input.required<T[] | null>();
   readonly labelFn = input.required<(d: T) => string>();
-  readonly valueFormatFn = input<((value: number) => string)>((value: number) => `${this.decimalPipe.transform(value)}`);
   readonly groups = input.required<Extract<NumberKeys<T>, string>[]>();
   // TODO: consider a default color scale if not provided
   readonly colorFn = input.required<(key: string) => string>();
+
+  readonly valueFormatFn = input<((value: number) => string)>((value: number) => `${this.decimalPipe.transform(value)}`);
+  readonly groupKeyFormatFn = input<(groupKey: string) => string>((key: string) => key);
 
   private readonly decimalPipe = inject(DecimalPipe);
 
@@ -97,7 +99,7 @@ export class HorizontalStackedChartComponent<T> {
     return {
       title: this.labelFn()(selectedDatum),
       groups: this.groups().map(key => {
-        return { name: key, value: this.valueFormatFn()(selectedDatum[key] as number)};
+        return { name: this.groupKeyFormatFn()(key), value: this.valueFormatFn()(selectedDatum[key] as number)};
       })
     };
   });

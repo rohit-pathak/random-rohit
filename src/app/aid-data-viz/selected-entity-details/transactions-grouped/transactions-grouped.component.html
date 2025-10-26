@@ -1,4 +1,5 @@
 <h3>Transactions by country (or organization)</h3>
 <app-horizontal-stacked-chart [data]="sortedTransactions()" [groups]="['donated', 'received']"
-                              [colorFn]="colorFn" [labelFn]="labelFn" [valueFormatFn]="formatFn"
+                              [colorFn]="colorFn" [labelFn]="labelFn" [valueFormatFn]="valueFormatFn"
+                              [groupKeyFormatFn]="groupKeyFormatFn"
 />
