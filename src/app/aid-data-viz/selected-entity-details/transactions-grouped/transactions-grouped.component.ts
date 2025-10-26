@@ -3,7 +3,7 @@ import { AidDataStore, EntityTransactionTotal } from "../../aid-data.store";
 import {
   HorizontalStackedChartComponent
 } from "../../../shared/components/horizontal-stacked-chart/horizontal-stacked-chart.component";
-import { CurrencyPipe } from "@angular/common";
+import { CurrencyPipe, TitleCasePipe } from "@angular/common";
 
 @Component({
   selector: 'app-transactions-grouped',
@@ -12,13 +12,16 @@ import { CurrencyPipe } from "@angular/common";
   ],
   templateUrl: './transactions-grouped.component.html',
   styleUrl: './transactions-grouped.component.scss',
-  providers: [CurrencyPipe],
+  providers: [CurrencyPipe, TitleCasePipe],
 })
 export class TransactionsGroupedComponent {
   private readonly store = inject(AidDataStore);
-  protected readonly currencyPipe = inject(CurrencyPipe);
+  private readonly currencyPipe = inject(CurrencyPipe);
+  private readonly titleCasePipe = inject(TitleCasePipe);
 
-  protected readonly formatFn = (value: number) => this.currencyPipe.transform(value, 'USD', 'symbol', '1.0-0') ?? `${value}`;
+
+  protected readonly valueFormatFn = (value: number) => this.currencyPipe.transform(value, 'USD', 'symbol', '1.0-0') ?? `${value}`;
+  protected readonly groupKeyFormatFn = (key: string) => this.titleCasePipe.transform(key);
   protected readonly selectedEntityGroupedTransactions = this.store.selectedEntityGroupedTransactions;
   protected readonly sortedTransactions = computed(() => {
     const transactions = this.selectedEntityGroupedTransactions();
@@ -29,10 +32,4 @@ export class TransactionsGroupedComponent {
   })
   protected readonly colorFn = this.store.colorScale;
   protected readonly labelFn = (d: EntityTransactionTotal) => d.entity;
-
-  constructor() {
-    // effect(() => {
-    //   console.log(this.selectedEntityGroupedTransactions());
-    // });
-  }
 }

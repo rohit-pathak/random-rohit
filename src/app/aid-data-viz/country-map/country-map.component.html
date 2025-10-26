@@ -5,6 +5,6 @@
 </svg>
 <app-tooltip [triggerEvent]="tooltipEvent()" [target]="host.nativeElement">
   <ng-container tooltip-header>{{ hoveredCountry()?.data?.name }}</ng-container>
-  <div>Donated: {{ hoveredCountry()?.data?.totalDonated | currency }}</div>
-  <div>Received: {{ hoveredCountry()?.data?.totalReceived | currency }}</div>
+  <div>Donated: {{ hoveredCountry()?.data?.totalDonated | currency:'USD':'symbol':'1.0-0' }}</div>
+  <div>Received: {{ hoveredCountry()?.data?.totalReceived | currency:'USD':'symbol':'1.0-0' }}</div>
 </app-tooltip>

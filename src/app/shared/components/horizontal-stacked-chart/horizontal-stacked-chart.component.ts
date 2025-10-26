@@ -1,6 +1,6 @@
 import { afterRenderEffect, Component, computed, ElementRef, inject, input, signal, viewChild } from '@angular/core';
 import { ResizeDirective } from "../../directives/resize.directive";
-import { axisLeft, axisTop, scaleBand, scaleLog, select, SeriesPoint, stack, stackOrderDescending } from "d3";
+import { axisLeft, axisTop, scaleBand, scaleLinear, select, SeriesPoint, stack, stackOrderDescending } from "d3";
 import { DomainDatum, NumberKeys } from "../chart.model";
 import { DecimalPipe } from "@angular/common";
 import { TooltipComponent } from "../tooltip/tooltip.component";
@@ -18,10 +18,12 @@ import { TooltipComponent } from "../tooltip/tooltip.component";
 export class HorizontalStackedChartComponent<T> {
   readonly data = input.required<T[] | null>();
   readonly labelFn = input.required<(d: T) => string>();
-  readonly valueFormatFn = input<((value: number) => string)>((value: number) => `${this.decimalPipe.transform(value)}`);
   readonly groups = input.required<Extract<NumberKeys<T>, string>[]>();
   // TODO: consider a default color scale if not provided
   readonly colorFn = input.required<(key: string) => string>();
+
+  readonly valueFormatFn = input<((value: number) => string)>((value: number) => `${this.decimalPipe.transform(value)}`);
+  readonly groupKeyFormatFn = input<(groupKey: string) => string>((key: string) => key);
 
   private readonly decimalPipe = inject(DecimalPipe);
 
@@ -70,7 +72,7 @@ export class HorizontalStackedChartComponent<T> {
     const width = this.barWidth();
     const stackedData = this.stackedData();
     const maxStackVal = Math.max(...stackedData.flatMap(series => series.map(d => d[1])))
-    return scaleLog([1, maxStackVal], [0, width]); // TODO: make scale configurable
+    return scaleLinear([0, maxStackVal], [0, width]); // TODO: make scale configurable
   });
   private readonly barHeight = 15;
   private readonly bandScale = computed(() => {
@@ -83,7 +85,7 @@ export class HorizontalStackedChartComponent<T> {
   private readonly labelAxis = computed(() => axisLeft(this.bandScale()));
   protected readonly xAxis = computed(() =>
     axisTop(this.xScale())
-      .ticks(this.width() / 80)
+      .ticks(this.width() / 80, '.0s') // TODO: make format an optional input
   );
 
   protected readonly host = inject(ElementRef<HTMLElement>);
@@ -97,7 +99,7 @@ export class HorizontalStackedChartComponent<T> {
     return {
       title: this.labelFn()(selectedDatum),
       groups: this.groups().map(key => {
-        return { name: key, value: this.valueFormatFn()(selectedDatum[key] as number)};
+        return { name: this.groupKeyFormatFn()(key), value: this.valueFormatFn()(selectedDatum[key] as number)};
       })
     };
   });
