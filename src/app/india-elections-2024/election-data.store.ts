@@ -98,8 +98,8 @@ export const ElectionDataStore = signalStore(
               electionDataService.getConstituencies(),
               electionDataService.getConstituencyResults()
             ]).pipe(
-              tapResponse(
-                ([mapData, constituencies, constituencyResults]) => {
+              tapResponse({
+                next: ([mapData, constituencies, constituencyResults]) => {
                   patchState(store, {
                     constituencies2024Map: mapData,
                     constituencies,
@@ -107,11 +107,11 @@ export const ElectionDataStore = signalStore(
                     isLoading: false,
                   });
                 },
-                (error) => {
+                error: (error) => {
                   console.error(error);
-                  patchState(store, { isLoading: false, error: 'Failed to load data' })
+                  patchState(store, { isLoading: false, error: 'Failed to load data' });
                 }
-              )
+              })
             )
           })
         )
