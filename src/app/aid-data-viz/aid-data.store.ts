@@ -36,7 +36,7 @@ export class AidDataStore {
   });
 
   // state properties
-  readonly isDataLoading= this.state.isDataLoading;
+  readonly isDataLoading = this.state.isDataLoading;
   readonly isMapLoading = this.state.isMapLoading;
   readonly error = this.state.error;
   readonly data = this.state.data;
@@ -167,15 +167,15 @@ export class AidDataStore {
       tap(() => patchState(this.state, { isMapLoading: true })),
       switchMap(() => {
         return this.aidDataService.getCountriesMap().pipe(
-          tapResponse(
-            (res) => {
+          tapResponse({
+            next: (res) => {
               patchState(this.state, { isMapLoading: false, countriesGeoJson: res });
             },
-            (err) => {
+            error: (err) => {
               console.error(err);
               patchState(this.state, { isMapLoading: false, error: 'Failed to load map data.' });
             }
-          )
+          })
         );
       })
     )
@@ -186,15 +186,15 @@ export class AidDataStore {
       tap(() => patchState(this.state, { isDataLoading: true })),
       switchMap(() => {
         return this.aidDataService.getTransactionData().pipe(
-          tapResponse(
-            res => {
+          tapResponse({
+            next: res => {
               patchState(this.state, { isDataLoading: false, data: res });
             },
-            err => {
+            error: err => {
               console.error('Failed to load aid transactions', err);
               patchState(this.state, { isDataLoading: false, error: 'Failed to load transaction data' });
             }
-          )
+          })
         );
       })
     )
