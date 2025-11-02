@@ -1,4 +1,5 @@
 import { select } from "d3";
+import { memoize } from "./memoize";
 
 /**
  * Returns truncated version of the axis labels based on targetWidget.
@@ -6,7 +7,7 @@ import { select } from "d3";
 export function getTruncatedLabelText(labels: string[], targetWidth: number): Map<string, string> {
   const res = new Map<string, string>();
   for (const label of labels) {
-    res.set(label, truncateAxisLabel(label, targetWidth))
+    res.set(label, memoizedTruncateLabel(label, targetWidth))
   }
   return res;
 }
@@ -49,3 +50,5 @@ export function truncateAxisLabel(label: string, targetWidth: number): string {
   tempSvg.remove();
   return lastValidTruncated;
 }
+
+export const memoizedTruncateLabel = memoize(truncateAxisLabel);
