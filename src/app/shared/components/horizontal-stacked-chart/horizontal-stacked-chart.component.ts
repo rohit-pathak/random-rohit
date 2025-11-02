@@ -4,6 +4,7 @@ import { axisLeft, axisTop, scaleBand, scaleLinear, select, SeriesPoint, stack, 
 import { DomainDatum, NumberKeys } from "../chart.model";
 import { DecimalPipe } from "@angular/common";
 import { TooltipComponent } from "../tooltip/tooltip.component";
+import { getTruncatedLabelText } from "../../utils/truncate-axis-labels";
 
 @Component({
   selector: 'app-horizontal-stacked-chart',
@@ -32,7 +33,7 @@ export class HorizontalStackedChartComponent<T> {
     return !data || (data.length === 0);
   })
   protected readonly dimensions = inject(ResizeDirective).dimensions;
-  private readonly padding = { top: 20, bottom: 5, left: 5, right: 10};
+  private readonly padding = { top: 20, bottom: 5, left: 5, right: 10 };
   protected readonly height = computed(() =>
     Math.max(this.barHeight, (this.data()?.length ?? 0) * this.barHeight));
   protected readonly width = computed(() =>
@@ -42,6 +43,12 @@ export class HorizontalStackedChartComponent<T> {
 
   private readonly labelWidth = computed(() => Math.floor(0.3 * this.width()));
   private readonly barWidth = computed(() => this.width() - this.labelWidth());
+  private readonly truncatedLabels = computed(() => {
+    const labelWidth = this.labelWidth();
+    const labels = this.labels();
+    return getTruncatedLabelText(labels, labelWidth - 10); // -10 for axis tick width
+  });
+
   protected readonly axisTransform = computed(() => `translate(${this.labelWidth()}, 0)`);
 
   private readonly svgRef = viewChild.required<ElementRef>('svg');
@@ -75,9 +82,10 @@ export class HorizontalStackedChartComponent<T> {
     return scaleLinear([0, maxStackVal], [0, width]); // TODO: make scale configurable
   });
   private readonly barHeight = 15;
+  private readonly labels = computed(() => this.data()?.map(d => this.labelFn()(d)) ?? []);
   private readonly bandScale = computed(() => {
     return scaleBand()
-      .domain(this.data()?.map(d => this.labelFn()(d)) ?? [])
+      .domain(this.labels())
       .range([0, this.height()])
       .align(0.5)
       .padding(0.1);
@@ -99,7 +107,7 @@ export class HorizontalStackedChartComponent<T> {
     return {
       title: this.labelFn()(selectedDatum),
       groups: this.groups().map(key => {
-        return { name: this.groupKeyFormatFn()(key), value: this.valueFormatFn()(selectedDatum[key] as number)};
+        return { name: this.groupKeyFormatFn()(key), value: this.valueFormatFn()(selectedDatum[key] as number) };
       })
     };
   });
@@ -120,10 +128,14 @@ export class HorizontalStackedChartComponent<T> {
   }
 
   private drawLabels(): void {
+    const truncatedLabels = this.truncatedLabels();
     this.labelGroup()
       .call(this.labelAxis()) // TODO: transition axis
-    this.truncateLabelText();
+      .selectAll<SVGTextElement, DomainDatum<T>>('.tick text')
+      .text(d => truncatedLabels.get(d.toString()) ?? d.toString());
+    // this.truncateLabelText();
   }
+
   private drawValueAxis(): void {
     this.xAxisGroup()
       .transition()
@@ -199,7 +211,7 @@ export class HorizontalStackedChartComponent<T> {
     seriesGroups
       .selectAll<SVGRectElement, BarDatum<T>>('.bar')
       .data(
-        series=> series.map(point => ({ key: series.key, point })),
+        series => series.map(point => ({ key: series.key, point })),
         datum => `${this.labelFn()(datum.point.data)}-${datum.key}`)
       .join('rect')
       .attr('class', 'bar')
