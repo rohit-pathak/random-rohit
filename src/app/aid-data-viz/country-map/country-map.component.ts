@@ -120,7 +120,7 @@ export class CountryMapComponent {
     if (!geoJson || !dimensions) {
       return;
     }
-    this.drawMap(geoJson);
+    this.drawMap(geoJson); // TODO: don't draw map again if width hasn't changed
     this.drawSymbolsOnMap();
     const mapHeight = this.countriesGroup().node()?.getBoundingClientRect().height ?? 0;
     this.organizationsGroup()
