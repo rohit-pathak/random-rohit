@@ -5,9 +5,9 @@ import { IndiaElections2024Component } from "./india-elections-2024/india-electi
 import { ResizeWithDirectiveComponent } from "./posts/resize-with-directive/resize-with-directive.component";
 
 export const routes: Routes = [
-  { path: 'home', component: HomeComponent },
-  { path: 'aid-data-viz', component: AidDataVizComponent },
-  { path: 'india-elections-2024', component: IndiaElections2024Component },
-  { path: 'resize-with-directives', component: ResizeWithDirectiveComponent },
+  { path: 'home', component: HomeComponent, title: 'Home' },
+  { path: 'aid-data-viz', component: AidDataVizComponent, title: 'International Aid Transactions' },
+  { path: 'india-elections-2024', component: IndiaElections2024Component, title: 'Indian Elections 2024' },
+  { path: 'resize-with-directives', component: ResizeWithDirectiveComponent, title: 'Resize directives' },
   { path: '', redirectTo: 'home', pathMatch: 'full' },
 ];
