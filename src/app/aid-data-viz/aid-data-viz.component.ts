@@ -1,4 +1,5 @@
 import { Component, inject, OnInit } from '@angular/core';
+import { Meta } from '@angular/platform-browser';
 import { AidDataStore } from './aid-data.store';
 import { AidDataService } from './aid-data.service';
 import { CountryMapComponent } from "./country-map/country-map.component";
@@ -23,11 +24,16 @@ import { MatProgressSpinner } from "@angular/material/progress-spinner";
   providers: [AidDataService, AidDataStore],
 })
 export class AidDataVizComponent implements OnInit {
-  private store = inject(AidDataStore);
+  private readonly store = inject(AidDataStore);
+  private readonly meta = inject(Meta);
 
   protected readonly isLoading = this.store.isLoading;
 
   ngOnInit(): void {
+    this.meta.updateTag({
+      name: 'description',
+      content: 'Explore global financial aid transactions between countries with interactive visualizations.'
+    });
     this.store.loadMap();
     this.store.loadData();
   }

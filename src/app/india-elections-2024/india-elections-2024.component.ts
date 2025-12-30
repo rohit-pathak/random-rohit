@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Meta } from '@angular/platform-browser';
 import { ElectionDataService } from "./services/election-data.service";
 import { ElectionDataStore } from "./election-data.store";
 import { ColorScaleService } from "./services/color-scale.service";
@@ -24,7 +25,8 @@ import { MatProgressSpinner } from "@angular/material/progress-spinner";
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class IndiaElections2024Component implements OnInit {
-  private electionDataStore = inject(ElectionDataStore);
+  private readonly electionDataStore = inject(ElectionDataStore);
+  private readonly meta = inject(Meta);
 
   protected readonly isLoading = this.electionDataStore.isLoading;
   protected readonly selectedConstituency = signal<Constituency | null>(null);
@@ -41,6 +43,10 @@ export class IndiaElections2024Component implements OnInit {
 
 
   ngOnInit(): void {
+    this.meta.updateTag({
+      name: 'description',
+      content: 'Interactive visualization of the 2024 Indian parliamentary election results.'
+    });
     this.electionDataStore.loadAllData();
   }
 
