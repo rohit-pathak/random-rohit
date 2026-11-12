@@ -14,7 +14,6 @@ import {
 } from '@angular/core';
 import {
   axisBottom,
-  AxisDomain,
   axisLeft,
   BaseType,
   ScaleLinear,

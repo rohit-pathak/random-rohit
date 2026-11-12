@@ -1,4 +1,4 @@
-import { Injectable } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient } from "@angular/common/http";
 import { FeatureCollection } from "geojson";
 import { map, Observable } from "rxjs";
@@ -7,8 +7,7 @@ import { Constituency, ConstituencyResult } from "../models/models";
 
 @Injectable()
 export class ElectionDataService {
-  constructor(private http: HttpClient) {
-  }
+  private readonly http = inject(HttpClient);
 
   public getMapGeoJSON(): Observable<FeatureCollection> {
     return this.http.get<FeatureCollection>('/data/india-parliamentary-constituencies-2024.geo.json');

@@ -13,7 +13,7 @@ The site deploys to Netlify as an SPA (`netlify.toml` redirects everything to `i
 
 ## Stack
 
-- Angular 20: standalone components, zoneless (`provideZonelessChangeDetection`), signals everywhere
+- Angular 22: standalone components, zoneless (`provideZonelessChangeDetection`), signals everywhere
 - NgRx SignalStore (`@ngrx/signals`) for page state, provided per page component
 - d3 v7 for charts, Angular Material for UI chrome
 - `marked` for rendering markdown posts

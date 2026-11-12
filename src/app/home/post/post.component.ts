@@ -7,7 +7,7 @@ import { DatePipe } from "@angular/common";
   imports: [RouterLink, DatePipe],
   template: `
     <a [routerLink]="route()">{{ title() }}</a>
-    <div class="date">[{{ date() | date }}]</div>
+    <div class="date">[{{ date() | date:'mediumDate':'UTC' }}]</div>
   `,
   styles: `
     :host {
