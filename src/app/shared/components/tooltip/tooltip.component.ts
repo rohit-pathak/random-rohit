@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, ElementRef, inject, input, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, ElementRef, input, viewChild } from '@angular/core';
 import { pointer } from "d3";
 import { ResizeDirective } from "../../directives/resize.directive";
 
